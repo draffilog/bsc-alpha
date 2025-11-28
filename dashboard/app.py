@@ -189,12 +189,11 @@ lq_outlier = (lq_raw <= 0) | ((px > 0) & (lq_raw / px > 10000)) | (lq_raw > 1_00
 merged["ath_outlier"] = ath_outlier.fillna(False)
 if not lq_raw.empty:
 	merged["listing_outlier"] = lq_outlier.fillna(False)
-# Use sanitized values for display and calculations
 merged["ath_price_usd"] = ath_raw.mask(ath_outlier)
 if "listing_price_quote" in merged.columns:
 	merged["listing_price_quote"] = lq_raw.mask(lq_outlier)
 
-# CG helpers
+# Helper: CG price near timestamp and ATH after a given timestamp
 @st.cache_data(show_spinner=False)
 
 def cg_price_near_ts(cg_id: str, ts_ms: int, offset_sec: int = 60, window_sec: int = 300):
@@ -220,7 +219,6 @@ def cg_price_near_ts(cg_id: str, ts_ms: int, offset_sec: int = 60, window_sec: i
 			prices = (r.json() or {}).get("prices") or []
 			if not prices:
 				return None
-			# choose the first point that is at or after ts+offset, else closest
 			target = ts_ms + offset_sec * 1000
 			after = [p for p in prices if int(p[0]) >= target]
 			chosen = after[0] if after else min(prices, key=lambda p: abs(int(p[0]) - target))
@@ -230,12 +228,16 @@ def cg_price_near_ts(cg_id: str, ts_ms: int, offset_sec: int = 60, window_sec: i
 
 @st.cache_data(show_spinner=False)
 
-def fetch_ath_from_cg_timeseries(cg_id: str):
-	if not cg_id:
+def cg_ath_after(cg_id: str, from_ts_ms: int):
+	if not cg_id or not from_ts_ms:
 		return None, None
 	base = "https://api.coingecko.com/api/v3"
 	headers = {"Accept": "application/json"}
-	params = {"vs_currency": "usd", "days": "max"}
+	params = {
+		"vs_currency": "usd",
+		"from": int(from_ts_ms / 1000),
+		"to": int(time.time()),
+	}
 	api_key = os.getenv("COINGECKO_API_KEY") or os.getenv("CG_API_KEY")
 	if api_key:
 		base = "https://pro-api.coingecko.com/api/v3"
@@ -243,11 +245,10 @@ def fetch_ath_from_cg_timeseries(cg_id: str):
 		params["x_cg_pro_api_key"] = api_key
 	try:
 		with httpx.Client(base_url=base, headers=headers, follow_redirects=True, timeout=40) as client:
-			r = client.get(f"/coins/{cg_id}/market_chart", params=params)
+			r = client.get(f"/coins/{cg_id}/market_chart/range", params=params)
 			if r.status_code != 200:
 				return None, None
-			data = r.json()
-			prices = data.get("prices") or []
+			prices = (r.json() or {}).get("prices") or []
 			if not prices:
 				return None, None
 			mx = max(prices, key=lambda p: float(p[1]))
@@ -269,14 +270,31 @@ if "cg_id" in merged.columns and "ath_date" in merged.columns:
 			except Exception:
 				continue
 
-# 2) For remaining outliers/missing, fall back to max(timeseries)
+# 2) If ATH date is before listing date, recompute ATH only after listing
+if "cg_id" in merged.columns and "listing_date" in merged.columns and "ath_date" in merged.columns:
+	mask_before = merged["ath_price_usd"].notna() & merged["ath_date"].notna() & merged["listing_date"].notna()
+	if mask_before.any():
+		for idx, row in merged[mask_before].iterrows():
+			try:
+				ath_ts = int(pd.to_datetime(row["ath_date"]).value // 1_000_000)
+				lst_ts = int(pd.to_datetime(row["listing_date"]).value // 1_000_000)
+				if ath_ts < lst_ts:
+					val, ts2 = cg_ath_after(str(row.get("cg_id") or ""), lst_ts)
+					if val and val < 1_000_000:
+						merged.at[idx, "ath_price_usd"] = val
+						if ts2:
+							merged.at[idx, "ath_date"] = pd.to_datetime(ts2, unit="ms", utc=True).isoformat()
+			except Exception:
+				continue
+
+# 3) For remaining outliers/missing, fall back to global max
 if "cg_id" in merged.columns:
 	mask = merged["ath_price_usd"].isna() | merged["ath_outlier"]
 	if mask.any():
 		for idx, row in merged[mask].iterrows():
-			ath_val, ts = fetch_ath_from_cg_timeseries(str(row.get("cg_id") or ""))
-			if ath_val and ath_val < 1_000_000:
-				merged.at[idx, "ath_price_usd"] = ath_val
+			val, ts = cg_ath_after(str(row.get("cg_id") or ""), 0)
+			if val and val < 1_000_000:
+				merged.at[idx, "ath_price_usd"] = val
 				if ts:
 					merged.at[idx, "ath_date"] = pd.to_datetime(ts, unit="ms", utc=True).isoformat()
 				merged.at[idx, "ath_outlier"] = False
@@ -332,7 +350,7 @@ from_ath_avg = (
 )
 if valid_to.any():
 	to_clip = to_ath_series[valid_to]
-	to_ath_avg = to_clip.clip(upper=to_clip.quantile(0.99)).mean()
+	to_ath_avg = to_clip.clip(upper=to_ath_series[valid_to].quantile(0.99)).mean()
 else:
 	to_ath_avg = float("nan")
 with colA:
