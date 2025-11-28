@@ -194,6 +194,47 @@ merged["ath_price_usd"] = ath_raw.mask(ath_outlier)
 if "listing_price_quote" in merged.columns:
 	merged["listing_price_quote"] = lq_raw.mask(lq_outlier)
 
+# Fallback: compute ATH from CoinGecko market_chart when missing/outlier
+@st.cache_data(show_spinner=False)
+
+def fetch_ath_from_cg_timeseries(cg_id: str, api_key: str | None):
+	if not cg_id:
+		return None, None
+	base = "https://api.coingecko.com/api/v3"
+	headers = {"Accept": "application/json"}
+	params = {"vs_currency": "usd", "days": "max"}
+	if api_key:
+		base = "https://pro-api.coingecko.com/api/v3"
+		headers["x-cg-pro-api-key"] = api_key
+		params["x_cg_pro_api_key"] = api_key
+	try:
+		with httpx.Client(base_url=base, headers=headers, follow_redirects=True, timeout=40) as client:
+			r = client.get(f"/coins/{cg_id}/market_chart", params=params)
+			if r.status_code != 200:
+				return None, None
+			data = r.json()
+			prices = data.get("prices") or []
+			if not prices:
+				return None, None
+			# find max
+			mx = max(prices, key=lambda p: float(p[1]))
+			return float(mx[1]), int(mx[0])
+	except Exception:
+		return None, None
+
+api_key = os.getenv("COINGECKO_API_KEY") or os.getenv("CG_API_KEY")
+if "cg_id" in merged.columns:
+	mask = merged["ath_price_usd"].isna() | merged["ath_outlier"]
+	if mask.any():
+		for idx, row in merged[mask].iterrows():
+			ath_val, ts = fetch_ath_from_cg_timeseries(str(row.get("cg_id") or ""), api_key)
+			if ath_val and ath_val < 1_000_000:
+				merged.at[idx, "ath_price_usd"] = ath_val
+				if ts:
+					merged.at[idx, "ath_date"] = pd.to_datetime(ts, unit="ms", utc=True).isoformat()
+				merged.at[idx, "ath_outlier"] = False
+
+# Recompute metrics with sanitized/fallback ATH
 merged["% from ATH"] = (px - merged["ath_price_usd"].astype(float)) / merged["ath_price_usd"].astype(float) * 100.0
 merged["% to ATH"] = (merged["ath_price_usd"].astype(float) - px) / px * 100.0
 
