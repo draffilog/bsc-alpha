@@ -19,6 +19,8 @@ if str(PROJECT_ROOT) not in sys.path:
 TOKENS_CSV = Path("./data/alpha/alpha_tokens.csv")
 METRICS_CSV = Path("./data/alpha/metrics.csv")
 LISTINGS_CSV = Path("./data/alpha/listings.csv")
+BINANCE_LISTINGS_CSV = Path("./data/alpha/binance_listings.csv")
+BINANCE_LISTINGS_COPY_CSV = Path("./data/alpha/binance_listings copy.csv")
 LOG_PATH = Path("./data/alpha/metrics_log.txt")
 
 st.set_page_config(page_title="BSC Alpha Tokens Dashboard", layout="wide")
@@ -65,7 +67,7 @@ with right:
 		force_refresh = st.button("Refresh metrics now")
 	with colB:
 		rps = st.number_input("Requests/sec", min_value=1, max_value=50, value=8, step=1)
-	force_listing = st.button("Refresh listings now")
+	force_listing = st.button("Refresh listings now (CoinGecko)")
 
 # Live log area
 log_area = st.empty()
@@ -137,10 +139,23 @@ metrics_df = metrics_df.drop(columns=[c for c in ["symbol","name"] if c in metri
 # Merge on address
 merged = tokens_df.merge(metrics_df, on="address", how="left")
 
-# Merge listings if available
+# Merge CoinGecko listings if available (generic listing.csv)
 if LISTINGS_CSV.exists():
 	listings_df = pd.read_csv(LISTINGS_CSV)
 	merged = merged.merge(listings_df, on="address", how="left")
+
+# Merge Binance Alpha listings if provided (binance_listings.csv or copy)
+alpha_listing_path = None
+if BINANCE_LISTINGS_CSV.exists():
+	alpha_listing_path = BINANCE_LISTINGS_CSV
+elif BINANCE_LISTINGS_COPY_CSV.exists():
+	alpha_listing_path = BINANCE_LISTINGS_COPY_CSV
+
+if alpha_listing_path:
+	alpha_df = pd.read_csv(alpha_listing_path)
+	# Normalize columns for merge; keep address, listing_date_alpha, listing_price_quote, listing_quote, alpha_pair
+	alpha_df = alpha_df[[c for c in alpha_df.columns if c in {"address","listing_date_alpha","listing_price_quote","listing_quote","alpha_pair","listing_timestamp_ms"}]]
+	merged = merged.merge(alpha_df, on="address", how="left", suffixes=("", "_alpha"))
 
 # Compute derived columns safely
 for col in ["price_usd", "ath_price_usd", "market_cap_usd", "global_rank"]:
@@ -150,13 +165,21 @@ for col in ["price_usd", "ath_price_usd", "market_cap_usd", "global_rank"]:
 merged["% from ATH"] = (merged["price_usd"].astype(float) - merged["ath_price_usd"].astype(float)) / merged["ath_price_usd"].astype(float) * 100.0
 merged["% to ATH"] = (merged["ath_price_usd"].astype(float) - merged["price_usd"].astype(float)) / merged["price_usd"].astype(float) * 100.0
 
-# ROI columns from listing
+# ROI from CoinGecko generic listing.csv
 if "listing_price_usd" in merged.columns:
 	lp = pd.to_numeric(merged["listing_price_usd"], errors="coerce")
 	px = pd.to_numeric(merged["price_usd"], errors="coerce")
 	ath = pd.to_numeric(merged["ath_price_usd"], errors="coerce")
 	merged["ROI_x"] = (px / lp).where((lp > 0) & px.notna())
 	merged["ATH_ROI_x"] = (ath / lp).where((lp > 0) & ath.notna())
+
+# ROI from Binance Alpha CSV (treat USDT≈USD)
+if "listing_price_quote" in merged.columns:
+	lq = pd.to_numeric(merged["listing_price_quote"], errors="coerce")
+	px = pd.to_numeric(merged["price_usd"], errors="coerce")
+	ath = pd.to_numeric(merged["ath_price_usd"], errors="coerce")
+	merged["ROI_alpha_x"] = (px / lq).where((lq > 0) & px.notna())
+	merged["ATH_ROI_alpha_x"] = (ath / lq).where((lq > 0) & ath.notna())
 
 # Create display rank: prefer CoinGecko global_rank; fallback to local rank by market cap (dense)
 try:
@@ -180,8 +203,14 @@ desired_cols = [
 	"ath_date",
 	"listing_date",
 	"listing_price_usd",
+	"listing_date_alpha",
+	"listing_price_quote",
+	"listing_quote",
+	"alpha_pair",
 	"ROI_x",
 	"ATH_ROI_x",
+	"ROI_alpha_x",
+	"ATH_ROI_alpha_x",
 	"% from ATH",
 	"% to ATH",
 ]
