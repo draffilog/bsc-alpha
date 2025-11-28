@@ -333,6 +333,7 @@ merged["% to ATH"] = (merged["ath_price_usd"].astype(float) - px) / px * 100.0
 if "listing_price_quote" in merged.columns:
 	lq = pd.to_numeric(merged["listing_price_quote"], errors="coerce")
 	merged["ROI %"] = ((px / lq) - 1.0).where((lq > 0) & px.notna()) * 100.0
+	merged["ROI %"] = pd.to_numeric(merged["ROI %"], errors="coerce").round(2)
 	merged["ATH ROI %"] = ((merged["ath_price_usd"].astype(float) / lq) - 1.0).where((lq > 0) & merged["ath_price_usd"].notna()) * 100.0
 	merged["ATH ROI %"] = pd.to_numeric(merged["ATH ROI %"], errors="coerce").round(2)
 
