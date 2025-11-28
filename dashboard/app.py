@@ -370,8 +370,14 @@ if not available_cols:
 else:
 	default_sort = "rank" if "rank" in available_cols else ("market_cap_usd" if "market_cap_usd" in available_cols else available_cols[0])
 	sort_by = st.selectbox("Sort by", options=available_cols, index=available_cols.index(default_sort))
-	ascending = st.checkbox("Ascending", value=(sort_by != "rank"))
-	filtered = merged[available_cols].sort_values(sort_by, ascending=ascending, na_position="last")
+	ascending = st.checkbox("Ascending", value=True if sort_by == "rank" else (sort_by != "rank"))
+	if sort_by == "rank":
+		_tmp = merged.copy()
+		_tmp["_rank_isna"] = _tmp["rank"].isna()
+		_sorted = _tmp.sort_values(by=["_rank_isna", "rank"], ascending=[True, ascending], na_position="last")
+		filtered = _sorted[available_cols]
+	else:
+		filtered = merged[available_cols].sort_values(sort_by, ascending=ascending, na_position="last")
 	st.dataframe(filtered, use_container_width=True, hide_index=True)
 
 st.subheader("Export")
