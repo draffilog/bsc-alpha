@@ -21,6 +21,37 @@ async def fetch_token_core(client: httpx.AsyncClient, rate: AsyncLimiter, addres
     return (r.json() if r.status_code == 200 else None, r.status_code)
 
 
+async def fetch_coin_rank_core(client: httpx.AsyncClient, rate: AsyncLimiter, cg_id: str, params: Dict, log) -> Optional[int]:
+    """Fetch global market_cap_rank from /coins/{id}."""
+    url = f"/coins/{cg_id}"
+    q = {
+        "localization": "false",
+        "tickers": "false",
+        "market_data": "true",
+        "community_data": "false",
+        "developer_data": "false",
+        "sparkline": "false",
+    }
+    # carry API key param if present
+    if "x_cg_pro_api_key" in params:
+        q["x_cg_pro_api_key"] = params["x_cg_pro_api_key"]
+    try:
+        async with rate:
+            r = await client.get(url, params=q, timeout=60)
+        if r.status_code != 200:
+            log(f"rank fetch {cg_id} -> {r.status_code}")
+            return None
+        data = r.json()
+        rank = data.get("market_cap_rank")
+        try:
+            return int(rank) if rank is not None else None
+        except Exception:
+            return None
+    except Exception as e:
+        log(f"rank fetch error {cg_id}: {e}")
+        return None
+
+
 async def fetch_onchain_fallback(client: httpx.AsyncClient, rate: AsyncLimiter, address: str, params: Dict, log) -> Optional[Dict]:
     # Best-effort fallback using Onchain Token Info endpoint
     # GET /onchain/networks/bsc/tokens/{address}
@@ -107,10 +138,9 @@ async def run(in_tokens_csv: Path, out_metrics_csv: Path, concurrency_rps: int =
     api_key = api_key or os.getenv("COINGECKO_API_KEY") or os.getenv("CG_API_KEY")
     base_url = DEMO_BASE
     if api_key:
-        # Per docs, Pro API uses pro-api domain and supports x_cg_pro_api_key query param
         base_url = PRO_BASE
         params_base["x_cg_pro_api_key"] = api_key
-        headers["x-cg-pro-api-key"] = api_key  # keep header too for safety
+        headers["x-cg-pro-api-key"] = api_key
         log("Using CoinGecko Pro API base and key")
 
     rate = AsyncLimiter(concurrency_rps, 1)
@@ -122,11 +152,18 @@ async def run(in_tokens_csv: Path, out_metrics_csv: Path, concurrency_rps: int =
             if not data:
                 continue
             # Normalize from either coins or onchain format
-            md = ((data.get("market_data") or {}) if "market_data" in data else {})
+            md = ((data.get("market_data") or {}) if isinstance(data, dict) and "market_data" in data else {})
             cur = (md.get("current_price") or {}).get("usd") if md else None
             ath = (md.get("ath") or {}).get("usd") if md else None
             ath_date = (md.get("ath_date") or {}).get("usd") if md else None
             mcap = (md.get("market_cap") or {}).get("usd") if md else None
+            cg_id = data.get("id") if isinstance(data, dict) else None
+            global_rank = data.get("market_cap_rank") if isinstance(data, dict) else None
+            # If rank missing, query /coins/{id}
+            if cg_id and not global_rank:
+                rk = await fetch_coin_rank_core(client, rate, cg_id, params_base, log)
+                if rk is not None:
+                    global_rank = rk
             name = data.get("name") or ""
             symbol = (data.get("symbol") or "").upper()
             # Onchain fallback mapping
@@ -146,11 +183,26 @@ async def run(in_tokens_csv: Path, out_metrics_csv: Path, concurrency_rps: int =
                 "ath_price_usd": ath,
                 "ath_date": ath_date,
                 "market_cap_usd": mcap,
+                "cg_id": cg_id,
+                "global_rank": int(global_rank) if isinstance(global_rank, (int, float, str)) and str(global_rank).isdigit() else None,
             })
 
     out_metrics_csv.parent.mkdir(parents=True, exist_ok=True)
     with out_metrics_csv.open("w", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=["address", "symbol", "name", "price_usd", "ath_price_usd", "ath_date", "market_cap_usd"])
+        w = csv.DictWriter(
+            f,
+            fieldnames=[
+                "address",
+                "symbol",
+                "name",
+                "price_usd",
+                "ath_price_usd",
+                "ath_date",
+                "market_cap_usd",
+                "cg_id",
+                "global_rank",
+            ],
+        )
         w.writeheader()
         for row in results:
             w.writerow(row)
