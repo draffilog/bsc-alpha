@@ -398,17 +398,39 @@ roi = pd.to_numeric(merged.get("ROI %"), errors="coerce")
 ath_roi = pd.to_numeric(merged.get("ATH ROI %"), errors="coerce")
 near_ath = (to_ath_series <= 25).sum() if "% to ATH" in merged else 0
 
-col1, col2, col3, col4 = st.columns(4)
-with col1:
-	st.metric("Median ROI % (since Alpha)", f"{roi.median():.2f}%" if roi.notna().any() else "–")
-with col2:
-	st.metric("Median ATH ROI % (since Alpha)", f"{ath_roi.median():.2f}%" if ath_roi.notna().any() else "–")
-with col3:
-	st.metric("Tokens within 25% of ATH", int(near_ath))
-with col4:
-	st.metric("Median days since listing", int(days_since.median()) if days_since.notna().any() else "–")
+# Robust averages (trim 1% tails to reduce outlier impact)
+def trimmed_mean(s: pd.Series) -> float:
+	v = s.dropna()
+	if v.empty:
+		return float("nan")
+	lo, hi = v.quantile(0.01), v.quantile(0.99)
+	return v.clip(lo, hi).mean()
 
-# Top movers
+k1, k2, k3, k4 = st.columns(4)
+with k1:
+	st.metric("Median ROI % (since Binance Alpha)", f"{roi.median():.2f}%" if roi.notna().any() else "–")
+with k2:
+	st.metric("Average ROI % (trimmed)", f"{trimmed_mean(roi):.2f}%" if roi.notna().any() else "–")
+with k3:
+	st.metric("Median ATH ROI % (since Binance Alpha)", f"{ath_roi.median():.2f}%" if ath_roi.notna().any() else "–")
+with k4:
+	st.metric("Average ATH ROI % (trimmed)", f"{trimmed_mean(ath_roi):.2f}%" if ath_roi.notna().any() else "–")
+
+m1, m2, m3, m4 = st.columns(4)
+with m1:
+	pos = (roi > 0).sum() if roi.notna().any() else 0
+	total = roi.notna().sum()
+	st.metric("Share with positive ROI", f"{(100*pos/max(total,1)):.1f}%")
+with m2:
+	st.metric("Tokens within 25% of ATH", int(near_ath))
+with m3:
+	st.metric("Median days since listing", int(days_since.median()) if days_since.notna().any() else "–")
+with m4:
+	st.metric("90th pct ROI %", f"{roi.quantile(0.90):.2f}%" if roi.notna().any() else "–")
+
+st.caption("Median resists outliers; averages shown are trimmed (1%-99%) to avoid extreme spikes.")
+
+# Top and Bottom movers
 mc = pd.to_numeric(merged.get("market_cap_usd"), errors="coerce")
 merged["_mc_num"] = mc
 
@@ -418,13 +440,23 @@ with colt1:
 	top_mc = merged.dropna(subset=["_mc_num"]).nlargest(10, "_mc_num")[['name','symbol','_mc_num']]
 	st.dataframe(top_mc.rename(columns={'_mc_num':'market cap usd'}), hide_index=True, use_container_width=True)
 with colt2:
-	st.caption("Top ROI since Alpha")
+	st.caption("Top ROI since Binance Alpha")
 	top_roi = merged.dropna(subset=["ROI %"]).nlargest(10, "ROI %")[['name','symbol','ROI %']]
 	st.dataframe(top_roi, hide_index=True, use_container_width=True)
 with colt3:
-	st.caption("Top ATH ROI since Alpha")
+	st.caption("Top ATH ROI since Binance Alpha")
 	top_ath_roi = merged.dropna(subset=["ATH ROI %"]).nlargest(10, "ATH ROI %")[['name','symbol','ATH ROI %']]
 	st.dataframe(top_ath_roi, hide_index=True, use_container_width=True)
+
+colb1, colb2 = st.columns(2)
+with colb1:
+	st.caption("Bottom ROI since Binance Alpha")
+	bot_roi = merged.dropna(subset=["ROI %"]).nsmallest(10, "ROI %")[['name','symbol','ROI %']]
+	st.dataframe(bot_roi, hide_index=True, use_container_width=True)
+with colb2:
+	st.caption("Bottom ATH ROI since Binance Alpha")
+	bot_ath_roi = merged.dropna(subset=["ATH ROI %"]).nsmallest(10, "ATH ROI %")[['name','symbol','ATH ROI %']]
+	st.dataframe(bot_ath_roi, hide_index=True, use_container_width=True)
 
 st.subheader("Tokens")
 if not available_cols:
