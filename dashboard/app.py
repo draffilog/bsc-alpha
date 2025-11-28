@@ -180,16 +180,28 @@ for col in ["price_usd", "ath_price_usd", "market_cap_usd", "global_rank"]:
 	if col not in merged.columns:
 		merged[col] = pd.NA
 
-merged["% from ATH"] = (merged["price_usd"].astype(float) - merged["ath_price_usd"].astype(float)) / merged["ath_price_usd"].astype(float) * 100.0
-merged["% to ATH"] = (merged["ath_price_usd"].astype(float) - merged["price_usd"].astype(float)) / merged["price_usd"].astype(float) * 100.0
+# Sanity guards for outliers (fixes CG bugs and junk listing values)
+px = pd.to_numeric(merged["price_usd"], errors="coerce")
+ath_raw = pd.to_numeric(merged["ath_price_usd"], errors="coerce")
+lq_raw = pd.to_numeric(merged.get("listing_price_quote"), errors="coerce") if "listing_price_quote" in merged.columns else pd.Series([])
+ath_outlier = (ath_raw <= 0) | ((px > 0) & (ath_raw / px > 10000)) | (ath_raw > 1_000_000)
+lq_outlier = (lq_raw <= 0) | ((px > 0) & (lq_raw / px > 10000)) | (lq_raw > 1_000_000)
+merged["ath_outlier"] = ath_outlier.fillna(False)
+if not lq_raw.empty:
+	merged["listing_outlier"] = lq_outlier.fillna(False)
+# Use sanitized values for display and calculations
+merged["ath_price_usd"] = ath_raw.mask(ath_outlier)
+if "listing_price_quote" in merged.columns:
+	merged["listing_price_quote"] = lq_raw.mask(lq_outlier)
+
+merged["% from ATH"] = (px - merged["ath_price_usd"].astype(float)) / merged["ath_price_usd"].astype(float) * 100.0
+merged["% to ATH"] = (merged["ath_price_usd"].astype(float) - px) / px * 100.0
 
 # ROI using Alpha listing price (USDT≈USD) — in percentages
-if "listing_price_quote" in tokens_df.columns or "listing_price_quote" in merged.columns:
-	lq = pd.to_numeric(merged.get("listing_price_quote"), errors="coerce")
-	px = pd.to_numeric(merged.get("price_usd"), errors="coerce")
-	ath = pd.to_numeric(merged.get("ath_price_usd"), errors="coerce")
+if "listing_price_quote" in merged.columns:
+	lq = pd.to_numeric(merged["listing_price_quote"], errors="coerce")
 	merged["ROI %"] = ((px / lq) - 1.0).where((lq > 0) & px.notna()) * 100.0
-	merged["ATH ROI %"] = ((ath / lq) - 1.0).where((lq > 0) & ath.notna()) * 100.0
+	merged["ATH ROI %"] = ((merged["ath_price_usd"].astype(float) / lq) - 1.0).where((lq > 0) & merged["ath_price_usd"].notna()) * 100.0
 
 # Rank: keep only CoinGecko global rank (no local fallback)
 merged["rank"] = pd.to_numeric(merged.get("global_rank"), errors="coerce").astype("Int64")
@@ -210,6 +222,8 @@ desired_cols = [
 	"listing_price_quote",
 	"% from ATH",
 	"% to ATH",
+	"ath_outlier",
+	"listing_outlier",
 ]
 available_cols = [c for c in desired_cols if c in merged.columns]
 
