@@ -172,6 +172,9 @@ else:
 	if "listing_date" not in merged.columns and "listing_date_alpha" in merged.columns:
 		merged["listing_date"] = merged["listing_date_alpha"]
 
+# Drop columns no longer desired
+merged = merged.drop(columns=[c for c in ["alpha_pair","listing_quote"] if c in merged.columns], errors="ignore")
+
 # Derived columns
 for col in ["price_usd", "ath_price_usd", "market_cap_usd", "global_rank"]:
 	if col not in merged.columns:
@@ -181,24 +184,17 @@ merged["% from ATH"] = (merged["price_usd"].astype(float) - merged["ath_price_us
 merged["% to ATH"] = (merged["ath_price_usd"].astype(float) - merged["price_usd"].astype(float)) / merged["price_usd"].astype(float) * 100.0
 
 # ROI using Alpha listing price (USDT≈USD) — in percentages
-if "listing_price_quote" in merged.columns:
-	lq = pd.to_numeric(merged["listing_price_quote"], errors="coerce")
-	px = pd.to_numeric(merged["price_usd"], errors="coerce")
-	ath = pd.to_numeric(merged["ath_price_usd"], errors="coerce")
+if "listing_price_quote" in tokens_df.columns or "listing_price_quote" in merged.columns:
+	lq = pd.to_numeric(merged.get("listing_price_quote"), errors="coerce")
+	px = pd.to_numeric(merged.get("price_usd"), errors="coerce")
+	ath = pd.to_numeric(merged.get("ath_price_usd"), errors="coerce")
 	merged["ROI %"] = ((px / lq) - 1.0).where((lq > 0) & px.notna()) * 100.0
 	merged["ATH ROI %"] = ((ath / lq) - 1.0).where((lq > 0) & ath.notna()) * 100.0
 
-# Rank: prefer global_rank
-try:
-	merged["market_cap_usd_num"] = pd.to_numeric(merged["market_cap_usd"], errors="coerce")
-except Exception:
-	merged["market_cap_usd_num"] = pd.NA
-merged["local_rank"] = (-merged["market_cap_usd_num"]).rank(method="dense").astype("Int64")
-merged["rank"] = pd.to_numeric(merged["global_rank"], errors="coerce")
-merged.loc[merged["rank"].isna(), "rank"] = merged.loc[merged["rank"].isna(), "local_rank"]
-merged["rank"] = merged["rank"].astype("Int64")
+# Rank: keep only CoinGecko global rank (no local fallback)
+merged["rank"] = pd.to_numeric(merged.get("global_rank"), errors="coerce").astype("Int64")
 
-# Display columns
+# Display columns — ROI columns immediately after ath_price_usd
 desired_cols = [
 	"rank",
 	"name",
@@ -207,13 +203,11 @@ desired_cols = [
 	"price_usd",
 	"market_cap_usd",
 	"ath_price_usd",
+	"ROI %",
+	"ATH ROI %",
 	"ath_date",
 	"listing_date",
 	"listing_price_quote",
-	"listing_quote",
-	"alpha_pair",
-	"ROI %",
-	"ATH ROI %",
 	"% from ATH",
 	"% to ATH",
 ]
@@ -256,7 +250,7 @@ else:
 	sort_by = st.selectbox("Sort by", options=available_cols, index=available_cols.index(default_sort))
 	ascending = st.checkbox("Ascending", value=(sort_by != "rank"))
 	filtered = merged[available_cols].sort_values(sort_by, ascending=ascending, na_position="last")
-	st.dataframe(filtered, use_container_width=True)
+	st.dataframe(filtered, use_container_width=True, hide_index=True)
 
 st.subheader("Export")
 @st.cache_data
