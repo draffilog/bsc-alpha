@@ -399,12 +399,45 @@ ath_roi = pd.to_numeric(merged.get("ATH ROI %"), errors="coerce")
 near_ath = (to_ath_series <= 25).sum() if "% to ATH" in merged else 0
 
 # Robust averages (trim 1% tails to reduce outlier impact)
+
 def trimmed_mean(s: pd.Series) -> float:
 	v = s.dropna()
 	if v.empty:
 		return float("nan")
 	lo, hi = v.quantile(0.01), v.quantile(0.99)
 	return v.clip(lo, hi).mean()
+
+# USD formatter
+
+def fmt_usd(v: float | None) -> str:
+	try:
+		if v is None or pd.isna(v):
+			return "–"
+		return f"${v:,.0f}"
+	except Exception:
+		return "–"
+
+# Global crypto market cap fetch
+@st.cache_data(show_spinner=False)
+
+def cg_global_market_cap_usd() -> float | None:
+	base = "https://api.coingecko.com/api/v3"
+	headers = {"Accept": "application/json"}
+	params = {}
+	api_key = os.getenv("COINGECKO_API_KEY") or os.getenv("CG_API_KEY")
+	if api_key:
+		base = "https://pro-api.coingecko.com/api/v3"
+		headers["x-cg-pro-api-key"] = api_key
+		params["x_cg_pro_api_key"] = api_key
+	try:
+		with httpx.Client(base_url=base, headers=headers, follow_redirects=True, timeout=20) as client:
+			r = client.get("/global", params=params)
+			if r.status_code != 200:
+				return None
+			data = r.json() or {}
+			return float(((data.get("data") or {}).get("total_market_cap") or {}).get("usd"))
+	except Exception:
+		return None
 
 k1, k2, k3, k4 = st.columns(4)
 with k1:
@@ -428,6 +461,18 @@ with m3:
 with m4:
 	st.metric("90th pct ROI %", f"{roi.quantile(0.90):.2f}%" if roi.notna().any() else "–")
 
+# Total market cap for BSC Alpha and share of crypto market
+mc = pd.to_numeric(merged.get("market_cap_usd"), errors="coerce")
+alpha_total_mc = float(mc.dropna().sum()) if mc.notna().any() else None
+global_mc = cg_global_market_cap_usd()
+share = (alpha_total_mc / global_mc * 100.0) if (alpha_total_mc and global_mc and global_mc > 0) else None
+
+s1, s2 = st.columns(2)
+with s1:
+	st.metric("Total market cap — BSC Alpha", fmt_usd(alpha_total_mc))
+with s2:
+	st.metric("Share of total crypto market", f"{share:.2f}%" if share is not None else "–")
+
 st.caption("Median resists outliers; averages shown are trimmed (1%-99%) to avoid extreme spikes.")
 with st.expander("How we calculate ROI metrics"):
 	st.markdown(
@@ -441,7 +486,6 @@ with st.expander("How we calculate ROI metrics"):
 	)
 
 # Top and Bottom movers
-mc = pd.to_numeric(merged.get("market_cap_usd"), errors="coerce")
 merged["_mc_num"] = mc
 
 colt1, colt2, colt3 = st.columns(3)
