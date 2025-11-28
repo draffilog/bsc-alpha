@@ -467,11 +467,18 @@ alpha_total_mc = float(mc.dropna().sum()) if mc.notna().any() else None
 global_mc = cg_global_market_cap_usd()
 share = (alpha_total_mc / global_mc * 100.0) if (alpha_total_mc and global_mc and global_mc > 0) else None
 
-s1, s2 = st.columns(2)
+s1, s2, s3, s4 = st.columns(4)
 with s1:
 	st.metric("Total market cap — BSC Alpha", fmt_usd(alpha_total_mc))
 with s2:
 	st.metric("Share of total crypto market", f"{share:.2f}%" if share is not None else "–")
+# Counts above/below listing price
+pos_count = int((roi > 0).sum()) if roi.notna().any() else 0
+neg_count = int((roi <= 0).sum()) if roi.notna().any() else 0
+with s3:
+	st.metric("Coins above listing price", f"{pos_count}")
+with s4:
+	st.metric("Coins at/below listing price", f"{neg_count}")
 
 st.caption("Median resists outliers; averages shown are trimmed (1%-99%) to avoid extreme spikes.")
 with st.expander("How we calculate ROI metrics"):
@@ -482,6 +489,8 @@ with st.expander("How we calculate ROI metrics"):
 		- **Median vs Average (trimmed)**:
 		  - Median is the middle value — robust to extreme outliers (good for typical performance).
 		  - Trimmed average clips the top/bottom 1% before averaging — reflects the mean while reducing distortion from spikes.
+		- **90th pct ROI %**: the value at which 90% of tokens have ROI ≤ this number (top 10% perform above it).
+		- **Above vs below listing**: counts are based on ROI sign (ROI > 0 = above listing; ROI ≤ 0 = at or below listing).
 		"""
 	)
 
