@@ -1,0 +1,1057 @@
+[
+  {
+    "address": "0x004d50b3fc784b580531d8e8615aa96cf7fbb919",
+    "symbol": "PLANCK",
+    "name": "Planck"
+  },
+  {
+    "address": "0x01bf3d77cd08b19bf3f2309972123a2cca0f6936",
+    "symbol": "AA",
+    "name": "ARAI Token"
+  },
+  {
+    "address": "0x0510101ec6c49d24ed911f0011e22a0d697ee776",
+    "symbol": "X",
+    "name": "TaleX"
+  },
+  {
+    "address": "0x06238c1b8e618abedf17669228dc95fb2d2e210b",
+    "symbol": "ECHO",
+    "name": "Echo"
+  },
+  {
+    "address": "0x0a73d885cdd66adf69c6d64c0609e55c527db2be",
+    "symbol": "K",
+    "name": "Sidekick"
+  },
+  {
+    "address": "0x0a8d6c86e1bce73fe4d0bd531e1a567306836ea5",
+    "symbol": "COAI",
+    "name": "ChainOpera AI"
+  },
+  {
+    "address": "0x0c78d4605c2972e5f989de9019de1fb00c5d3462",
+    "symbol": "CESS",
+    "name": "CESS Network"
+  },
+  {
+    "address": "0x0c808f0464c423d5ea4f4454fcc23b6e2ae75562",
+    "symbol": "EDGEN",
+    "name": "LayerEdge"
+  },
+  {
+    "address": "0x0e63b9c287e32a05e6b9ab8ee8df88a2760225a9",
+    "symbol": "PIEVERSE",
+    "name": "Pieverse Token"
+  },
+  {
+    "address": "0x0e7779e698052f8fe56c415c3818fcf89de9ac6d",
+    "symbol": "ULTI",
+    "name": "Ultiverse"
+  },
+  {
+    "address": "0x0f0df6cb17ee5e883eddfef9153fc6036bdb4e37",
+    "symbol": "BAS",
+    "name": "BNB Attestation"
+  },
+  {
+    "address": "0x103071da56e7cd95b415320760d6a0ddc4da1ca5",
+    "symbol": "XTER",
+    "name": "Xterio"
+  },
+  {
+    "address": "0x1036b2379f506761f237fba7463857924ef21ce3",
+    "symbol": "BDXN",
+    "name": "Bondex Token"
+  },
+  {
+    "address": "0x11cf6bf6d87cb0eb9c294fd6cbfec91ee3a1a7d0",
+    "symbol": "FOREST",
+    "name": "Forest"
+  },
+  {
+    "address": "0x1219c409fabe2c27bd0d1a565daeed9bd9f271de",
+    "symbol": "TAC",
+    "name": "TAC Token"
+  },
+  {
+    "address": "0x12b4356c65340fb02cdff01293f95febb1512f3b",
+    "symbol": "Broccoli",
+    "name": "Broccoli"
+  },
+  {
+    "address": "0x19ed254efa5e061d28d84650891a3db2a9940c16",
+    "symbol": "$SUP",
+    "name": "Superp"
+  },
+  {
+    "address": "0x1a9fd6ec3144da3dd6ea13ec1c25c58423a379b1",
+    "symbol": "SPA",
+    "name": "Sperax"
+  },
+  {
+    "address": "0x1aaeb7d6436fda7cdac7b87ab8022e97586d2da1",
+    "symbol": "TOWN",
+    "name": "Alt.town"
+  },
+  {
+    "address": "0x1aecab957bad4c6e36dd29c3d3bb470c4c29768a",
+    "symbol": "BSU",
+    "name": "Baby Shark Universe Token"
+  },
+  {
+    "address": "0x1b379a79c91a540b2bcd612b4d713f31de1b80cc",
+    "symbol": "NAORIS",
+    "name": "Naoris Protocol"
+  },
+  {
+    "address": "0x1d58e204ca59328007469a614522903d69dc0a4c",
+    "symbol": "VRA",
+    "name": "VERA"
+  },
+  {
+    "address": "0x1e3dbc0aad9671fdd31e58b2fcc6cf1ca9947994",
+    "symbol": "WAI",
+    "name": "WORLD3"
+  },
+  {
+    "address": "0x1f34c87ded863fe3a3cd76fac8ada9608137c8c3",
+    "symbol": "OVL",
+    "name": "Overlay"
+  },
+  {
+    "address": "0x20482b0b4d9d8f60d3ab432b92f4c4b901a0d10c",
+    "symbol": "REKT",
+    "name": "Rekt"
+  },
+  {
+    "address": "0x208bf3e7da9639f1eaefa2de78c23396b0682025",
+    "symbol": "TAG",
+    "name": "Tagger"
+  },
+  {
+    "address": "0x22b1458e780f8fa71e2f84502cee8b5a3cc731fa",
+    "symbol": "M",
+    "name": "MemeCore"
+  },
+  {
+    "address": "0x238d72e179a581c98dc1996417a49818c7e509dc",
+    "symbol": "FIR",
+    "name": "Fireverse"
+  },
+  {
+    "address": "0x23ccab1de32e06a6235a7997c266f86440c2cbe6",
+    "symbol": "DELABS",
+    "name": "Delabs Games"
+  },
+  {
+    "address": "0x23d3f4eaaa515403c6765bb623f287a8cca28f2b",
+    "symbol": "BROCCOLI",
+    "name": "Broccoli"
+  },
+  {
+    "address": "0x23fe903be385832fd7bb82bf1fee93f696278888",
+    "symbol": "DORA",
+    "name": "DORA"
+  },
+  {
+    "address": "0x2a7e3392458307493c86388d5e544aad93286836",
+    "symbol": "ARIAIP",
+    "name": "Aria"
+  },
+  {
+    "address": "0x2b5d9adea07b590b638ffc165792b2c610eda649",
+    "symbol": "CKP",
+    "name": "Cakepie"
+  },
+  {
+    "address": "0x2c3a8ee94ddd97244a93bc48298f97d2c412f7db",
+    "symbol": "AKE",
+    "name": "AKE"
+  },
+  {
+    "address": "0x2d060ef4d6bf7f9e5edde373ab735513c0e4f944",
+    "symbol": "AITECH",
+    "name": "AITECH"
+  },
+  {
+    "address": "0x2d739dd563609c39a1ae1546a03e8b469361175f",
+    "symbol": "KO",
+    "name": "Kyuzo\u2019s Friends"
+  },
+  {
+    "address": "0x2f714d7b9a035d4ce24af8d9b6091c07e37f43fb",
+    "symbol": "NODE",
+    "name": "NodeOps"
+  },
+  {
+    "address": "0x30c60b20c25b2810ca524810467a0c342294fc61",
+    "symbol": "TAIKO",
+    "name": "Taiko Token"
+  },
+  {
+    "address": "0x3199a64bc8aabdfd9a3937a346cc59c3d81d8a9a",
+    "symbol": "MUBARAKAH",
+    "name": "Mubarakah"
+  },
+  {
+    "address": "0x374c5fb7979d5fdbaad2d95409e235e5cbdfd43c",
+    "symbol": "MLK",
+    "name": "MiL.k"
+  },
+  {
+    "address": "0x37eff3ff1321fb9abc734761ca72fafdc044534a",
+    "symbol": "TALE",
+    "name": "PrompTale AI"
+  },
+  {
+    "address": "0x38fd4ee2ade8b4be157dfee3d6b8979c78a56145",
+    "symbol": "SHARDS",
+    "name": "WorldShards"
+  },
+  {
+    "address": "0x39702843a6733932ec7ce0dde404e5a6dbd8c989",
+    "symbol": "AVAIL",
+    "name": "Avail (Wormhole)"
+  },
+  {
+    "address": "0x3b4de3c7855c03bb9f50ea252cd2c9fa1125ab07",
+    "symbol": "IDOL",
+    "name": "MEET48 Token"
+  },
+  {
+    "address": "0x3c8d20001fe883934a15c949a3355a65ca984444",
+    "symbol": "Janitor",
+    "name": "Janitor"
+  },
+  {
+    "address": "0x3ca729bfd4bbad155f072752510226b37a5b7723",
+    "symbol": "AGON",
+    "name": "AGON Agent"
+  },
+  {
+    "address": "0x3dc8e2d80b6215a1bccae4d38715c3520581e77c",
+    "symbol": "EPT",
+    "name": "Balance"
+  },
+  {
+    "address": "0x3e5d4f8aee0d9b3082d5f6da5d6e225d17ba9ea0",
+    "symbol": "UAI",
+    "name": "UnifAI"
+  },
+  {
+    "address": "0x3ecb529752dec6c6ab08fd83e425497874e21d49",
+    "symbol": "PINGPONG",
+    "name": "PINGPONG"
+  },
+  {
+    "address": "0x3f160760535eb715d5809a26cf55408a2d9844c1",
+    "symbol": "OL",
+    "name": "OPENLOOT"
+  },
+  {
+    "address": "0x3fefe29da25bea166fb5f6ade7b5976d2b0e586b",
+    "symbol": "ROAM",
+    "name": "Roam Token"
+  },
+  {
+    "address": "0x40b8129b786d766267a7a118cf8c07e31cdb6fde",
+    "symbol": "UB",
+    "name": "Unibase"
+  },
+  {
+    "address": "0x44440f83419de123d7d411187adb9962db017d03",
+    "symbol": "BNBHolder",
+    "name": "\u5e01\u5b89Holder"
+  },
+  {
+    "address": "0x44f161ae29361e332dea039dfa2f404e0bc5b5cc",
+    "symbol": "H",
+    "name": "Humanity"
+  },
+  {
+    "address": "0x4507cef57c46789ef8d1a19ea45f4216bae2b528",
+    "symbol": "TOKEN",
+    "name": "TokenFi"
+  },
+  {
+    "address": "0x46ee3bfc281d59009ccd06f1dd6abdbfcd82ffc3",
+    "symbol": "GATA",
+    "name": "Gata"
+  },
+  {
+    "address": "0x48a18a4782b65a0fbed4dca608bb28038b7be339",
+    "symbol": "AIA",
+    "name": "DeAgentAI"
+  },
+  {
+    "address": "0x49c6c91ec839a581de2b882e868494215250ee59",
+    "symbol": "DGRAM",
+    "name": "Datagram"
+  },
+  {
+    "address": "0x4ad663403df2f0e7987bc9c74561687472e1611c",
+    "symbol": "FROG",
+    "name": "Frodo the virtual samurai"
+  },
+  {
+    "address": "0x4c067de26475e1cefee8b8d1f6e2266b33a2372e",
+    "symbol": "RHEA",
+    "name": "Rhea"
+  },
+  {
+    "address": "0x4e107a0000db66f0e9fd2039288bf811dd1f9c74",
+    "symbol": "VLR",
+    "name": "Velora"
+  },
+  {
+    "address": "0x4e200fe2f3efb977d5fd9c430a41531fb04d97b8",
+    "symbol": "ORDER",
+    "name": "Orderly Network"
+  },
+  {
+    "address": "0x4fa7c69a7b69f8bc48233024d546bc299d6b03bf",
+    "symbol": "quq",
+    "name": "quq"
+  },
+  {
+    "address": "0x503fa24b7972677f00c4618e5fbe237780c1df53",
+    "symbol": "KILO",
+    "name": "KiloEx Token"
+  },
+  {
+    "address": "0x5043f271095350c5ac7db2384a0d9337e27c1055",
+    "symbol": "PERRY",
+    "name": "Perry"
+  },
+  {
+    "address": "0x51363f073b1e4920fda7aa9e9d84ba97ede1560e",
+    "symbol": "BOB",
+    "name": "Build On BNB"
+  },
+  {
+    "address": "0x52b5fb4b0f6572b8c44d0251cc224513ac5eb7e7",
+    "symbol": "BOB",
+    "name": "BOB"
+  },
+  {
+    "address": "0x539ae81a166e5e80aed211731563e549c411b140",
+    "symbol": "TA",
+    "name": "Trusta.AI"
+  },
+  {
+    "address": "0x55ad16bd573b3365f43a9daeb0cc66a73821b4a5",
+    "symbol": "AIOT",
+    "name": "OKZOO"
+  },
+  {
+    "address": "0x57df399cace62f98a74bffdffbb264e6f31bd982",
+    "symbol": "PFVS",
+    "name": "Puffverse Token"
+  },
+  {
+    "address": "0x5845684b49aef79a5c0f887f50401c247dca7ac6",
+    "symbol": "CYC",
+    "name": "Cycle Network Token"
+  },
+  {
+    "address": "0x59537849f2a119ec698c7aa6c6daadc40c398a25",
+    "symbol": "BOT",
+    "name": "HyperBot"
+  },
+  {
+    "address": "0x595e21b20e78674f8a64c1566a20b2b316bc3511",
+    "symbol": "BULLA",
+    "name": "BULLA"
+  },
+  {
+    "address": "0x5b6e1ccf4cbbe27f588f8dcea8e9e39acb595e3d",
+    "symbol": "DIGI",
+    "name": "MineD"
+  },
+  {
+    "address": "0x5ba9bfffb868859064c33d4f995a0828b2b1d2d3",
+    "symbol": "XLAB",
+    "name": "Dexlab"
+  },
+  {
+    "address": "0x5c8daeabc57e9249606d3bd6d1e097ef492ea3c5",
+    "symbol": "FUEL",
+    "name": "FUEL"
+  },
+  {
+    "address": "0x5d3a12c42e5372b2cc3264ab3cdcf660a1555238",
+    "symbol": "ARIA",
+    "name": "ARIA.AI"
+  },
+  {
+    "address": "0x5d7909f951436d4e6974d841316057df3a622962",
+    "symbol": "GOATED",
+    "name": "Goat Network"
+  },
+  {
+    "address": "0x5dbde81fce337ff4bcaaee4ca3466c00aecae274",
+    "symbol": "AGT",
+    "name": "Alaya Governance Token"
+  },
+  {
+    "address": "0x5e0d6791edbeeba6a14d1d38e2b8233257118eb1",
+    "symbol": "MGO",
+    "name": "MGO"
+  },
+  {
+    "address": "0x61dbbbb552dc893ab3aad09f289f811e67cef285",
+    "symbol": "SKATE",
+    "name": "Skate"
+  },
+  {
+    "address": "0x61fac5f038515572d6f42d4bcb6b581642753d50",
+    "symbol": "IN",
+    "name": "INFINIT"
+  },
+  {
+    "address": "0x6261963ebe9ff014aad10ecc3b0238d4d04e8353",
+    "symbol": "HANA",
+    "name": "Hana Token"
+  },
+  {
+    "address": "0x6685906b75c61c57772c335402f594f855c1b0e3",
+    "symbol": "WILD",
+    "name": "Wilder World"
+  },
+  {
+    "address": "0x6952c5408b9822295ba4a7e694d0c5ffdb8fe320",
+    "symbol": "FAIR3",
+    "name": "Fair and Free"
+  },
+  {
+    "address": "0x6a2608dabe09bc1128eec7275b92dfb939d5db3f",
+    "symbol": "TOSHI",
+    "name": "Toshi"
+  },
+  {
+    "address": "0x6bdcce4a559076e37755a78ce0c06214e59e4444",
+    "symbol": "B",
+    "name": "B"
+  },
+  {
+    "address": "0x6bf62ca91e397b5a7d1d6bce97d9092065d7a510",
+    "symbol": "CROSS",
+    "name": "Cross"
+  },
+  {
+    "address": "0x6c58e4a513d3a8062e57f41a1442e003af14ebb5",
+    "symbol": "TGT",
+    "name": "TGT"
+  },
+  {
+    "address": "0x6cfffa5bfd4277a04d83307feedfe2d18d944dd2",
+    "symbol": "ALEO",
+    "name": "Aleo"
+  },
+  {
+    "address": "0x6d2ebdf6d551d8408e7d896e9a1ec6f84806e193",
+    "symbol": "LN",
+    "name": "LnfiOFT"
+  },
+  {
+    "address": "0x6f0037c79d144d5b8e3e6f04e49fbb5f25fd508f",
+    "symbol": "RCADE",
+    "name": "RCADE"
+  },
+  {
+    "address": "0x722294f6c97102fb0ddb5b907c8d16bdeab3f6d9",
+    "symbol": "DOOD",
+    "name": "Doodles"
+  },
+  {
+    "address": "0x74836cc0e821a6be18e407e6388e430b689c66e9",
+    "symbol": "Jager",
+    "name": "Jager Hunter"
+  },
+  {
+    "address": "0x75a5863a19af60ec0098d62ed8c34cc594fb470f",
+    "symbol": "MPLX",
+    "name": "Metaplex"
+  },
+  {
+    "address": "0x795d2710e383f33fbebe980a155b29757b6703f3",
+    "symbol": "GHIBLI",
+    "name": "GhibliCZ"
+  },
+  {
+    "address": "0x799a290f9cc4085a0ce5b42b5f2c30193a7a872b",
+    "symbol": "ELDE",
+    "name": "Elderglade"
+  },
+  {
+    "address": "0x7a986ba67227acfab86385ff33436a80e2bb4cc5",
+    "symbol": "PUNDIAI",
+    "name": "Pundi AI"
+  },
+  {
+    "address": "0x7b4bf9feccff207ef2cb7101ceb15b8516021acd",
+    "symbol": "MILK",
+    "name": "MilkyWay"
+  },
+  {
+    "address": "0x7c8217517ed4711fe2deccdfeffe8d906b9ae11f",
+    "symbol": "BLESS",
+    "name": "Bless Token"
+  },
+  {
+    "address": "0x7cea5b9548a4b48cf9551813ef9e73de916e41e0",
+    "symbol": "MIA",
+    "name": "MIA"
+  },
+  {
+    "address": "0x7e975d85714b11d862c7cffee3c88d565a139eb7",
+    "symbol": "BOMB",
+    "name": "Bombie"
+  },
+  {
+    "address": "0x8105743e8a19c915a604d7d9e7aa3a060a4c2c32",
+    "symbol": "ARTX",
+    "name": "Ultiland"
+  },
+  {
+    "address": "0x825459139c897d769339f295e962396c4f9e4a4d",
+    "symbol": "GAME",
+    "name": "GameBuild"
+  },
+  {
+    "address": "0x87aa6aeb62ff128aaa96e275d7b24cd12a72aba1",
+    "symbol": "PUBLIC",
+    "name": "PublicAI"
+  },
+  {
+    "address": "0x87d00066cf131ff54b72b134a217d5401e5392b6",
+    "symbol": "PUFFER",
+    "name": "PUFFER"
+  },
+  {
+    "address": "0x899357e54c2c4b014ea50a9a7bf140ba6df2ec73",
+    "symbol": "PRAI",
+    "name": "Privasea AI"
+  },
+  {
+    "address": "0x8a0db359c38414b5f145f65cc1c69d9253067c43",
+    "symbol": "UPTOP",
+    "name": "UPTOP"
+  },
+  {
+    "address": "0x8b194370825e37b33373e74a41009161808c1488",
+    "symbol": "VELVET",
+    "name": "Velvet"
+  },
+  {
+    "address": "0x8b9ee39195ea99d6ddd68030f44131116bc218f6",
+    "symbol": "PEAQ",
+    "name": "PeaqOFT"
+  },
+  {
+    "address": "0x8c321c2e323bc26c01df0dc62311482a1256fdf5",
+    "symbol": "ZENT",
+    "name": "Zentry"
+  },
+  {
+    "address": "0x8dedf84656fa932157e27c060d8613824e7979e3",
+    "symbol": "STBL",
+    "name": "STBL_Token - STBL Governance Token"
+  },
+  {
+    "address": "0x8fce7206e3043dd360f115afa956ee31b90b787c",
+    "symbol": "STAR",
+    "name": "Starpower Network"
+  },
+  {
+    "address": "0x90869b3a42e399951bd5f5ff278b8cc5ee1dc0fe",
+    "symbol": "REX",
+    "name": "REX"
+  },
+  {
+    "address": "0x91152b4ef635403efbae860edd0f8c321d7c035d",
+    "symbol": "IRYS",
+    "name": "Irys"
+  },
+  {
+    "address": "0x9123400446a56176eb1b6be9ee5cf703e409f492",
+    "symbol": "TRADOOR",
+    "name": "TRADOOR"
+  },
+  {
+    "address": "0x92aa03137385f18539301349dcfc9ebc923ffb10",
+    "symbol": "SKYAI",
+    "name": "SKYAI"
+  },
+  {
+    "address": "0x95034f653d5d161890836ad2b6b8cc49d14e029a",
+    "symbol": "AB",
+    "name": "AB"
+  },
+  {
+    "address": "0x953783617a71a888f8b04f397f2c9e1a7c37af7e",
+    "symbol": "JOJO",
+    "name": "JOJOWORLD"
+  },
+  {
+    "address": "0x9558a9254890b2a8b057a789f413631b9084f4a3",
+    "symbol": "AIN",
+    "name": "Infinity Ground AI"
+  },
+  {
+    "address": "0x95c9b514566fbd224dc2037f5914eb8ab91c9201",
+    "symbol": "PTB",
+    "name": "Portal To Bitcoin"
+  },
+  {
+    "address": "0x996d1b997203a024e205069a304161ba618d1c61",
+    "symbol": "TAT",
+    "name": "Tell A Tale"
+  },
+  {
+    "address": "0x997a58129890bbda032231a52ed1ddc845fc18e1",
+    "symbol": "SIREN",
+    "name": "SIREN"
+  },
+  {
+    "address": "0x9a70815dfb644a24b57358e1041f8d0324c8f6e1",
+    "symbol": "BOOP",
+    "name": "BOOP"
+  },
+  {
+    "address": "0x9beee89723ceec27d7c2834bec6834208ffdc202",
+    "symbol": "AVL",
+    "name": "AVL"
+  },
+  {
+    "address": "0x9c8b5ca345247396bdfac0395638ca9045c6586e",
+    "symbol": "RWA",
+    "name": "Allo"
+  },
+  {
+    "address": "0x9cfae8067322394e34e6b734c4a3f72acc4a7fe5",
+    "symbol": "DGC",
+    "name": "DecentralGPT"
+  },
+  {
+    "address": "0x9ec02756a559700d8d9e79ece56809f7bcc5dc27",
+    "symbol": "WHY",
+    "name": "why"
+  },
+  {
+    "address": "0x9eca8dedb4882bd694aea786c0cbe770e70d52e3",
+    "symbol": "LONG",
+    "name": "LONG"
+  },
+  {
+    "address": "0xa1832f7f4e534ae557f9b5ab76de54b1873e498b",
+    "symbol": "BID",
+    "name": "CreatorBid"
+  },
+  {
+    "address": "0xa18bbdcd86e4178d10ecd9316667cfe4c4aa8717",
+    "symbol": "BNBXBT",
+    "name": "BNBXBT"
+  },
+  {
+    "address": "0xa2be3e48170a60119b5f0400c65f65f3158fbeee",
+    "symbol": "ZEUS",
+    "name": "ZEUS"
+  },
+  {
+    "address": "0xa3cfb853339b77f385b994799b015cb04b208fe6",
+    "symbol": "POP",
+    "name": "Zypher Token"
+  },
+  {
+    "address": "0xa45f5eb48cecd034751651aeeda6271bd5df8888",
+    "symbol": "Froggie ",
+    "name": "Froggie "
+  },
+  {
+    "address": "0xa49fa5e8106e2d6d6a69e78df9b6a20aab9c4444",
+    "symbol": "DONKEY",
+    "name": "donkey"
+  },
+  {
+    "address": "0xa4b68d48d7bc6f04420e8077e6f74bdef809dea3",
+    "symbol": "BGSC",
+    "name": "BugsCoin"
+  },
+  {
+    "address": "0xa5346f91a767b89a0363a4309c8e6c5adc0c4a59",
+    "symbol": "MM",
+    "name": "MOMO.FUN"
+  },
+  {
+    "address": "0xa5c8e1513b6a08334b479fe4d71f1253259469be",
+    "symbol": "GUA",
+    "name": "GUA"
+  },
+  {
+    "address": "0xa890f8ba60051ec8a5b528f056da362ba208a96f",
+    "symbol": "GAIN",
+    "name": "GriffinAI"
+  },
+  {
+    "address": "0xa8d3dee6671c4fdac4743a1eb1f276eabd4ba302",
+    "symbol": "ZKWASM",
+    "name": "ZKWASM Token"
+  },
+  {
+    "address": "0xa992ffb0c9b753307b9704079c61db4e405deffd",
+    "symbol": "COA",
+    "name": "Alliance Games"
+  },
+  {
+    "address": "0xaafe1f781bc5e4d240c4b73f6748d76079678fa8",
+    "symbol": "TIMI",
+    "name": "TIMI"
+  },
+  {
+    "address": "0xabd834a7823567673e1ac07635d5d9857b34a8d3",
+    "symbol": "AFT",
+    "name": "AIFlow Token"
+  },
+  {
+    "address": "0xad8c787992428cd158e451aab109f724b6bc36de",
+    "symbol": "ASP",
+    "name": "ASPECTA"
+  },
+  {
+    "address": "0xb035723d62e0e2ea7499d76355c9d560f13ba404",
+    "symbol": "OIK",
+    "name": "Space Nation Oikos"
+  },
+  {
+    "address": "0xb05f4747eb3d18a3fa4aa3e5c627f02ccc70d005",
+    "symbol": "DARK",
+    "name": "DarkStar"
+  },
+  {
+    "address": "0xb40f2e5291c3db45abb0ca8df76f1c21e9f112a9",
+    "symbol": "BRIC",
+    "name": "BRIC"
+  },
+  {
+    "address": "0xb5761f36fdfe2892f1b54bc8ee8babb2a1b698d3",
+    "symbol": "RICE",
+    "name": "RICE AI"
+  },
+  {
+    "address": "0xb7c0007ab75350c582d5eab1862b872b5cf53f0c",
+    "symbol": "PUMP",
+    "name": "pumpBTC Governance token"
+  },
+  {
+    "address": "0xb7e548c4f133adbb910914d7529d5cb00c2e9051",
+    "symbol": "PAL",
+    "name": "Palio"
+  },
+  {
+    "address": "0xb994882a1b9bd98a71dd6ea5f61577c42848b0e8",
+    "symbol": "WoD",
+    "name": "World of Dypians"
+  },
+  {
+    "address": "0xb9e1fd5a02d3a33b25a14d661414e6ed6954a721",
+    "symbol": "SOON",
+    "name": "SOON Token"
+  },
+  {
+    "address": "0xba38b3c706f7a515ff7c8db04daa0a134ec46d2b",
+    "symbol": "USELESS",
+    "name": "USELESS COIN"
+  },
+  {
+    "address": "0xba5ed44733953d79717f6269357c77718c8ba5ed",
+    "symbol": "U",
+    "name": "Union"
+  },
+  {
+    "address": "0xbe7e12b2e128bc955a0130ffb168f031d7dd8d58",
+    "symbol": "BOOST",
+    "name": "Boost"
+  },
+  {
+    "address": "0xbfe78de7d1c51e0868501d5fa3e88e674c79acdd",
+    "symbol": "LOT",
+    "name": "League of Traders"
+  },
+  {
+    "address": "0xc07e1300dc138601fa6b0b59f8d0fa477e690589",
+    "symbol": "Q",
+    "name": "Quack AI Token"
+  },
+  {
+    "address": "0xc08cd26474722ce93f4d0c34d16201461c10aa8c",
+    "symbol": "CARV",
+    "name": "CARV"
+  },
+  {
+    "address": "0xc0c240c870606a5cb3150795e2d0dfff9f1f7456",
+    "symbol": "RION",
+    "name": "Hyperion"
+  },
+  {
+    "address": "0xc1353d3ee02fdbd4f65f92eee543cfd709049cb1",
+    "symbol": "CUDIS",
+    "name": "CUDIS"
+  },
+  {
+    "address": "0xc19539eb93444523ec8f1432624924d2e6226546",
+    "symbol": "TAKER",
+    "name": "TAKER"
+  },
+  {
+    "address": "0xc19d38925f9f645337b1d1f37baf3c0647a48e50",
+    "symbol": "GAIB",
+    "name": "GAIB"
+  },
+  {
+    "address": "0xc23db46993f643f1fa0494cd30f9f43505885d84",
+    "symbol": "TCOM",
+    "name": "TCOM"
+  },
+  {
+    "address": "0xc61eb549acf4a05ed6e3fe0966f5e213b23541ce",
+    "symbol": "NUMI",
+    "name": "NUMINE Token"
+  },
+  {
+    "address": "0xc71b5f631354be6853efe9c3ab6b9590f8302e81",
+    "symbol": "ZK",
+    "name": "Polyhedra Network"
+  },
+  {
+    "address": "0xcc442a4c0b9c35578aa285f0d39f2bcc0e152acd",
+    "symbol": "SSS",
+    "name": "Sparkle Token"
+  },
+  {
+    "address": "0xcd1679f117e81defc4f0009311ddc23fc1ae4a5e",
+    "symbol": "MAIGA",
+    "name": "MAIGA Token"
+  },
+  {
+    "address": "0xcd806d0eb9465020994c9e977cbe34fe430172ae",
+    "symbol": "DL",
+    "name": "Dill"
+  },
+  {
+    "address": "0xce7c3b5e058c196a0eaaa21f8e4bf8c2c07c2935",
+    "symbol": "BOOM",
+    "name": "Boom"
+  },
+  {
+    "address": "0xcef5b397051fc92026249670e918c0ad7b8585e4",
+    "symbol": "OBT",
+    "name": "Orbiter Token"
+  },
+  {
+    "address": "0xcf640fdf9b3d9e45cbd69fda91d7e22579c14444",
+    "symbol": "gorilla",
+    "name": "gorilla"
+  },
+  {
+    "address": "0xd029b392580d555f35cca1987f27d248cf883716",
+    "symbol": "PHY",
+    "name": "DePHY"
+  },
+  {
+    "address": "0xd06716e1ff2e492cc5034c2e81805562dd3b45fa",
+    "symbol": "MGP",
+    "name": "Magpie Token"
+  },
+  {
+    "address": "0xd5369a3cac0f4448a9a96bb98af9c887c92fc37b",
+    "symbol": "BUBB",
+    "name": "Bubb"
+  },
+  {
+    "address": "0xd55c9fb62e176a8eb6968f32958fefdd0962727e",
+    "symbol": "FHE",
+    "name": "MindNetwork FHE Token"
+  },
+  {
+    "address": "0xd5df4d260d7a0145f655bcbf3b398076f21016c7",
+    "symbol": "AOP",
+    "name": "Ark Of Panda"
+  },
+  {
+    "address": "0xd5eaaac47bd1993d661bc087e15dfb079a7f3c19",
+    "symbol": "KOMA",
+    "name": "Koma Inu"
+  },
+  {
+    "address": "0xd715cc968c288740028be20685263f43ed1e4837",
+    "symbol": "GAIA",
+    "name": "Gaia Token"
+  },
+  {
+    "address": "0xd8002d4bd1d50136a731c141e3206d516e6d3b3d",
+    "symbol": "GM",
+    "name": "GOMBLE"
+  },
+  {
+    "address": "0xd86e6ef14b96d942ef0abf0720c549197ea8c528",
+    "symbol": "RDO",
+    "name": "RDO Token"
+  },
+  {
+    "address": "0xd955c9ba56fb1ab30e34766e252a97ccce3d31a6",
+    "symbol": "XPIN",
+    "name": "XPIN Token"
+  },
+  {
+    "address": "0xda7ad9dea9397cffddae2f8a052b82f1484252b3",
+    "symbol": "RIVER",
+    "name": "River"
+  },
+  {
+    "address": "0xdac991621fd8048d9f235324780abd6c3ad26421",
+    "symbol": "ZRC",
+    "name": "Zircuit"
+  },
+  {
+    "address": "0xdb6f1f098b55e36b036603c8e54663a8d907d6e1",
+    "symbol": "BEE",
+    "name": "BEE"
+  },
+  {
+    "address": "0xdc06717f367e57a16e06cce0c4761604460da8fc",
+    "symbol": "BNBCARD",
+    "name": "BNB Card"
+  },
+  {
+    "address": "0xde04da55b74435d7b9f2c5c62d9f1b53929b09aa",
+    "symbol": "AICell",
+    "name": "AICell"
+  },
+  {
+    "address": "0xe0a441d23cedb44822dfc8562e4d8d39c6b7f946",
+    "symbol": "SGC",
+    "name": "SGC"
+  },
+  {
+    "address": "0xe1e93e92c0c2aff2dc4d7d4a8b250d973cad4444",
+    "symbol": "\u6076\u4fd7\u4f01\u9e45",
+    "name": "\u4e09\u7ef4\u5a01\u5ec9\u6cf0\u5c14\u4f01\u9e45"
+  },
+  {
+    "address": "0xe3225e11cab122f1a126a28997788e5230838ab9",
+    "symbol": "XNY",
+    "name": "Codatta XNY"
+  },
+  {
+    "address": "0xe32f9e8f7f7222fcd83ee0fc68baf12118448eaf",
+    "symbol": "XCX",
+    "name": "Xeleb AI"
+  },
+  {
+    "address": "0xe50e3d1a46070444f44df911359033f2937fcc13",
+    "symbol": "SQD",
+    "name": "Subsquid"
+  },
+  {
+    "address": "0xe6df05ce8c8301223373cf5b969afcb1498c5528",
+    "symbol": "KOGE",
+    "name": "BNB48 Club Token"
+  },
+  {
+    "address": "0xe747e54783ba3f77a8e5251a3cba19ebe9c0e197",
+    "symbol": "TAKE",
+    "name": "TAKE"
+  },
+  {
+    "address": "0xea17df5cf6d172224892b5477a16acb111182478",
+    "symbol": "elizaOS",
+    "name": "elizaOS"
+  },
+  {
+    "address": "0xea37a8de1de2d9d10772eeb569e28bfa5cb17707",
+    "symbol": "JCT",
+    "name": "JANCTION"
+  },
+  {
+    "address": "0xf39e4b21c84e737df08e2c3b32541d856f508e48",
+    "symbol": "ESPORTS",
+    "name": "Yooldo Games"
+  },
+  {
+    "address": "0xf486ad071f3bee968384d2e39e2d8af0fcf6fd46",
+    "symbol": "VELO",
+    "name": "VELO"
+  },
+  {
+    "address": "0xf4b385849f2e817e92bffbfb9aeb48f950ff4444",
+    "symbol": "EGL1",
+    "name": "EGL1"
+  },
+  {
+    "address": "0xf6402bec11bd945bbd46be77e1fa5d477883f6c2",
+    "symbol": "PORT3",
+    "name": "Port3 Network"
+  },
+  {
+    "address": "0xf86089b30f30285d492b0527c37b9c2225bfcf8c",
+    "symbol": "PLAY",
+    "name": "Play"
+  },
+  {
+    "address": "0xf970706063b7853877f39515c96932d49d5ac9cd",
+    "symbol": "YALA",
+    "name": "Yala Token"
+  },
+  {
+    "address": "0xf9ca3fe094212ffa705742d3626a8ab96aababf8",
+    "symbol": "DAM",
+    "name": "Reservoir"
+  },
+  {
+    "address": "0xfa35e2250e376c23955247383dc32c79082e7fcc",
+    "symbol": "FST",
+    "name": "FreeStyle Token"
+  },
+  {
+    "address": "0xfc5a743271672e91d77f0176e5cea581fbd5d834",
+    "symbol": "SLAY",
+    "name": "SatLayer"
+  },
+  {
+    "address": "0xfdc8cd47848c0c67df66f7120f4e3371181cfa5e",
+    "symbol": "BLUM",
+    "name": "Blum"
+  },
+  {
+    "address": "0xfe2dd2d57a05f89438f3aec94eafa4070396bab0",
+    "symbol": "MAT",
+    "name": "Matchain"
+  },
+  {
+    "address": "0xfe723495f73714426493384eb5e49aa5b827e1d5",
+    "symbol": "MORE",
+    "name": "Moonveil"
+  },
+  {
+    "address": "0xfebe8c1ed424dbf688551d4e2267e7a53698f0aa",
+    "symbol": "VINU",
+    "name": "Vita Inu"
+  },
+  {
+    "address": "0xfed13d0c40790220fbde712987079eda1ed75c51",
+    "symbol": "BTR",
+    "name": "BTR token"
+  },
+  {
+    "address": "0xff7d6a96ae471bbcd7713af9cb1feeb16cf56b41",
+    "symbol": "BR",
+    "name": "Bedrock"
+  },
+  {
+    "address": "0xff7f8f301f7a706e3cfd3d2275f5dc0b9ee8009b",
+    "symbol": "FOLKS",
+    "name": "Folks Finance"
+  }
+]
