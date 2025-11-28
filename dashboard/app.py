@@ -180,67 +180,13 @@ for col in ["price_usd", "ath_price_usd", "market_cap_usd", "global_rank"]:
 merged["% from ATH"] = (merged["price_usd"].astype(float) - merged["ath_price_usd"].astype(float)) / merged["ath_price_usd"].astype(float) * 100.0
 merged["% to ATH"] = (merged["ath_price_usd"].astype(float) - merged["price_usd"].astype(float)) / merged["price_usd"].astype(float) * 100.0
 
-# Listing price USD via CoinGecko using listing_date
-@st.cache_data(show_spinner=False)
-
-def fetch_price_at_ts(cg_id: str, ts_ms: int, api_key: str | None) -> float | None:
-	if not cg_id or not ts_ms:
-		return None
-	base = "https://api.coingecko.com/api/v3"
-	headers = {"Accept": "application/json"}
-	params = {"vs_currency": "usd", "from": int(ts_ms/1000) - 3600, "to": int(ts_ms/1000) + 3600}
-	if api_key:
-		base = "https://pro-api.coingecko.com/api/v3"
-		headers["x-cg-pro-api-key"] = api_key
-		params["x_cg_pro_api_key"] = api_key
-	try:
-		with httpx.Client(base_url=base, headers=headers, follow_redirects=True, timeout=30) as client:
-			r = client.get(f"/coins/{cg_id}/market_chart/range", params=params)
-			if r.status_code != 200:
-				return None
-			data = r.json()
-			prices = data.get("prices") or []
-			if not prices:
-				return None
-			closest = min(prices, key=lambda p: abs(int(p[0]) - ts_ms))
-			return float(closest[1])
-	except Exception:
-		return None
-
-# Compute listing USD automatically when we have cg_id and listing date
-api_key = os.getenv("COINGECKO_API_KEY") or os.getenv("CG_API_KEY")
-if "listing_date" in merged.columns and "cg_id" in merged.columns:
-	lst_prices = []
-	for _, r in merged.iterrows():
-		cgid = str(r.get("cg_id") or "")
-		ts = None
-		if pd.notna(r.get("listing_timestamp_ms")):
-			try:
-				ts = int(r.get("listing_timestamp_ms"))
-			except Exception:
-				ts = None
-		if ts is None and pd.notna(r.get("listing_date")):
-			try:
-				ts = int(pd.to_datetime(r.get("listing_date")).value // 1_000_000)
-			except Exception:
-				ts = None
-		price = fetch_price_at_ts(cgid, ts, api_key) if (cgid and ts) else None
-		lst_prices.append(price)
-	merged["listing_price_usd_cg"] = lst_prices
-
-# ROI using CoinGecko listing USD
-lp = pd.to_numeric(merged.get("listing_price_usd_cg"), errors="coerce") if "listing_price_usd_cg" in merged.columns else pd.Series([])
-px = pd.to_numeric(merged.get("price_usd"), errors="coerce")
-ath = pd.to_numeric(merged.get("ath_price_usd"), errors="coerce")
-if not lp.empty:
-	merged["ROI_cg_x"] = (px / lp).where((lp > 0) & px.notna())
-	merged["ATH_ROI_cg_x"] = (ath / lp).where((lp > 0) & ath.notna())
-
-# Also compute ROI from Alpha-quoted price if present (USDT≈USD)
+# ROI using Alpha listing price (USDT≈USD) — in percentages
 if "listing_price_quote" in merged.columns:
 	lq = pd.to_numeric(merged["listing_price_quote"], errors="coerce")
-	merged["ROI_alpha_x"] = (px / lq).where((lq > 0) & px.notna())
-	merged["ATH_ROI_alpha_x"] = (ath / lq).where((lq > 0) & ath.notna())
+	px = pd.to_numeric(merged["price_usd"], errors="coerce")
+	ath = pd.to_numeric(merged["ath_price_usd"], errors="coerce")
+	merged["ROI %"] = ((px / lq) - 1.0).where((lq > 0) & px.notna()) * 100.0
+	merged["ATH ROI %"] = ((ath / lq) - 1.0).where((lq > 0) & ath.notna()) * 100.0
 
 # Rank: prefer global_rank
 try:
@@ -263,14 +209,11 @@ desired_cols = [
 	"ath_price_usd",
 	"ath_date",
 	"listing_date",
-	"listing_price_usd_cg",
-	"ROI_cg_x",
-	"ATH_ROI_cg_x",
 	"listing_price_quote",
 	"listing_quote",
 	"alpha_pair",
-	"ROI_alpha_x",
-	"ATH_ROI_alpha_x",
+	"ROI %",
+	"ATH ROI %",
 	"% from ATH",
 	"% to ATH",
 ]
