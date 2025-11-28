@@ -141,14 +141,33 @@ available_cols = [c for c in desired_cols if c in merged.columns]
 
 st.subheader("Summary")
 colA, colB, colC, colD = st.columns(4)
+# Robust averages: ignore zero/NaN, clip extreme outliers at 99th percentile
+from_ath_series = pd.to_numeric(merged["% from ATH"], errors="coerce")
+to_ath_series = pd.to_numeric(merged["% to ATH"], errors="coerce")
+price_series = pd.to_numeric(merged["price_usd"], errors="coerce")
+valid_from = from_ath_series.notna()
+valid_to = to_ath_series.notna() & price_series.gt(0) & to_ath_series.ge(0)
+from_ath_avg = (
+	from_ath_series[valid_from].clip(
+		lower=from_ath_series[valid_from].quantile(0.01),
+		upper=from_ath_series[valid_from].quantile(0.99),
+	).mean()
+	if valid_from.any()
+	else float("nan")
+)
+if valid_to.any():
+	to_clip = to_ath_series[valid_to]
+	to_ath_avg = to_clip.clip(upper=to_clip.quantile(0.99)).mean()
+else:
+	to_ath_avg = float("nan")
 with colA:
 	st.metric("Tokens", len(merged))
 with colB:
 	st.metric("With metrics", int(merged["price_usd"].notna().sum()))
 with colC:
-	st.metric("Avg % from ATH", f"{merged['% from ATH'].dropna().mean():.2f}%")
+	st.metric("Avg % from ATH", f"{from_ath_avg:.2f}%")
 with colD:
-	st.metric("Avg % to ATH", f"{merged['% to ATH'].dropna().mean():.2f}%")
+	st.metric("Avg % to ATH", f"{to_ath_avg:.2f}%")
 
 st.subheader("Tokens")
 if not available_cols:
