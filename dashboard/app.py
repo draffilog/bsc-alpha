@@ -193,7 +193,7 @@ merged["ath_price_usd"] = ath_raw.mask(ath_outlier)
 if "listing_price_quote" in merged.columns:
 	merged["listing_price_quote"] = lq_raw.mask(lq_outlier)
 
-# Helper: CG price near timestamp and ATH after a given timestamp
+# Helpers: CoinGecko utilities
 @st.cache_data(show_spinner=False)
 
 def cg_price_near_ts(cg_id: str, ts_ms: int, offset_sec: int = 60, window_sec: int = 300):
@@ -229,7 +229,7 @@ def cg_price_near_ts(cg_id: str, ts_ms: int, offset_sec: int = 60, window_sec: i
 @st.cache_data(show_spinner=False)
 
 def cg_ath_after(cg_id: str, from_ts_ms: int):
-	if not cg_id or not from_ts_ms:
+	if not cg_id:
 		return None, None
 	base = "https://api.coingecko.com/api/v3"
 	headers = {"Accept": "application/json"}
@@ -256,14 +256,41 @@ def cg_ath_after(cg_id: str, from_ts_ms: int):
 	except Exception:
 		return None, None
 
+@st.cache_data(show_spinner=False)
+
+def cg_id_by_address(address: str):
+	if not address:
+		return None
+	base = "https://api.coingecko.com/api/v3"
+	headers = {"Accept": "application/json"}
+	params = {}
+	api_key = os.getenv("COINGECKO_API_KEY") or os.getenv("CG_API_KEY")
+	if api_key:
+		base = "https://pro-api.coingecko.com/api/v3"
+		headers["x-cg-pro-api-key"] = api_key
+		params["x_cg_pro_api_key"] = api_key
+	try:
+		with httpx.Client(base_url=base, headers=headers, follow_redirects=True, timeout=20) as client:
+			r = client.get(f"/coins/binance-smart-chain/contract/{address}", params=params)
+			if r.status_code != 200:
+				return None
+			data = r.json() or {}
+			return data.get("id")
+	except Exception:
+		return None
+
 # 1) Fill NaN ATH using price 1 minute after ath_date
-if "cg_id" in merged.columns and "ath_date" in merged.columns:
+if "ath_date" in merged.columns:
 	mask_na = merged["ath_price_usd"].isna() & merged["ath_date"].notna()
 	if mask_na.any():
 		for idx, row in merged[mask_na].iterrows():
 			try:
+				cgid = str(row.get("cg_id") or "")
+				if not cgid:
+					cgid = cg_id_by_address(str(row.get("address") or ""))
+					replaced = False
 				ts = int(pd.to_datetime(row["ath_date"]).value // 1_000_000)
-				price = cg_price_near_ts(str(row.get("cg_id") or ""), ts, offset_sec=60, window_sec=300)
+				price = cg_price_near_ts(cgid, ts, offset_sec=60, window_sec=300) if cgid else None
 				if price and price < 1_000_000:
 					merged.at[idx, "ath_price_usd"] = price
 					merged.at[idx, "ath_outlier"] = False
@@ -271,15 +298,16 @@ if "cg_id" in merged.columns and "ath_date" in merged.columns:
 				continue
 
 # 2) If ATH date is before listing date, recompute ATH only after listing
-if "cg_id" in merged.columns and "listing_date" in merged.columns and "ath_date" in merged.columns:
+if "listing_date" in merged.columns and "ath_date" in merged.columns:
 	mask_before = merged["ath_price_usd"].notna() & merged["ath_date"].notna() & merged["listing_date"].notna()
 	if mask_before.any():
 		for idx, row in merged[mask_before].iterrows():
 			try:
+				cgid = str(row.get("cg_id") or "") or cg_id_by_address(str(row.get("address") or ""))
 				ath_ts = int(pd.to_datetime(row["ath_date"]).value // 1_000_000)
 				lst_ts = int(pd.to_datetime(row["listing_date"]).value // 1_000_000)
-				if ath_ts < lst_ts:
-					val, ts2 = cg_ath_after(str(row.get("cg_id") or ""), lst_ts)
+				if cgid and ath_ts < lst_ts:
+					val, ts2 = cg_ath_after(cgid, lst_ts)
 					if val and val < 1_000_000:
 						merged.at[idx, "ath_price_usd"] = val
 						if ts2:
@@ -288,16 +316,18 @@ if "cg_id" in merged.columns and "listing_date" in merged.columns and "ath_date"
 				continue
 
 # 3) For remaining outliers/missing, fall back to global max
-if "cg_id" in merged.columns:
-	mask = merged["ath_price_usd"].isna() | merged["ath_outlier"]
-	if mask.any():
-		for idx, row in merged[mask].iterrows():
-			val, ts = cg_ath_after(str(row.get("cg_id") or ""), 0)
-			if val and val < 1_000_000:
-				merged.at[idx, "ath_price_usd"] = val
-				if ts:
-					merged.at[idx, "ath_date"] = pd.to_datetime(ts, unit="ms", utc=True).isoformat()
-				merged.at[idx, "ath_outlier"] = False
+mask = merged["ath_price_usd"].isna() | merged["ath_outlier"]
+if mask.any():
+	for idx, row in merged[mask].iterrows():
+		cgid = str(row.get("cg_id") or "") or cg_id_by_address(str(row.get("address") or ""))
+		if not cgid:
+			continue
+		val, ts = cg_ath_after(cgid, 0)
+		if val and val < 1_000_000:
+			merged.at[idx, "ath_price_usd"] = val
+			if ts:
+				merged.at[idx, "ath_date"] = pd.to_datetime(ts, unit="ms", utc=True).isoformat()
+			merged.at[idx, "ath_outlier"] = False
 
 # Recompute metrics
 merged["% from ATH"] = (px - merged["ath_price_usd"].astype(float)) / merged["ath_price_usd"].astype(float) * 100.0
@@ -308,7 +338,6 @@ if "listing_price_quote" in merged.columns:
 	lq = pd.to_numeric(merged["listing_price_quote"], errors="coerce")
 	merged["ROI %"] = ((px / lq) - 1.0).where((lq > 0) & px.notna()) * 100.0
 	merged["ATH ROI %"] = ((merged["ath_price_usd"].astype(float) / lq) - 1.0).where((lq > 0) & merged["ath_price_usd"].notna()) * 100.0
-	# Round ATH ROI % to two decimals
 	merged["ATH ROI %"] = pd.to_numeric(merged["ATH ROI %"], errors="coerce").round(2)
 
 # Rank: keep only CoinGecko global rank (no local fallback)
@@ -378,7 +407,11 @@ else:
 		filtered = _sorted[available_cols]
 	else:
 		filtered = merged[available_cols].sort_values(sort_by, ascending=ascending, na_position="last")
-	st.dataframe(filtered, use_container_width=True, hide_index=True)
+	# Rename columns for display: remove underscores and annotate ROI columns
+	rename_map = {c: c.replace("_", " ") for c in filtered.columns}
+	rename_map["ROI %"] = "ROI % (since Binance Alpha)"
+	rename_map["ATH ROI %"] = "ATH ROI % (since Binance Alpha)"
+	st.dataframe(filtered.rename(columns=rename_map), use_container_width=True, hide_index=True)
 
 st.subheader("Export")
 @st.cache_data
@@ -389,4 +422,8 @@ def to_csv_bytes(df: pd.DataFrame) -> bytes:
 	return buf.getvalue().encode("utf-8")
 
 if 'filtered' in locals():
-	st.download_button("Download table as CSV", to_csv_bytes(filtered), file_name="bsc_alpha_dashboard.csv", mime="text/csv")
+	# Export with same user-friendly headers
+	rename_map = {c: c.replace("_", " ") for c in filtered.columns}
+	rename_map["ROI %"] = "ROI % (since Binance Alpha)"
+	rename_map["ATH ROI %"] = "ATH ROI % (since Binance Alpha)"
+	st.download_button("Download table as CSV", to_csv_bytes(filtered.rename(columns=rename_map)), file_name="bsc_alpha_dashboard.csv", mime="text/csv")
