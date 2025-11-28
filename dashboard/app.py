@@ -429,6 +429,16 @@ with m4:
 	st.metric("90th pct ROI %", f"{roi.quantile(0.90):.2f}%" if roi.notna().any() else "–")
 
 st.caption("Median resists outliers; averages shown are trimmed (1%-99%) to avoid extreme spikes.")
+with st.expander("How we calculate ROI metrics"):
+	st.markdown(
+		"""
+		- **ROI % (since Binance Alpha)**: ((current price − listing price) / listing price) × 100. Uses `listing_price_quote` (USDT ≈ USD).
+		- **ATH ROI % (since Binance Alpha)**: ((ATH price − listing price) / listing price) × 100. ATH is sanitized and recomputed only using data after the Binance Alpha listing date.
+		- **Median vs Average (trimmed)**:
+		  - Median is the middle value — robust to extreme outliers (good for typical performance).
+		  - Trimmed average clips the top/bottom 1% before averaging — reflects the mean while reducing distortion from spikes.
+		"""
+	)
 
 # Top and Bottom movers
 mc = pd.to_numeric(merged.get("market_cap_usd"), errors="coerce")
