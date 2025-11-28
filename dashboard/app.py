@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 
 import pandas as pd
 import streamlit as st
+import httpx
 
 # Ensure project root is on sys.path so we can import alpha_contracts
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -68,6 +69,7 @@ with right:
 	with colB:
 		rps = st.number_input("Requests/sec", min_value=1, max_value=50, value=8, step=1)
 	force_listing = st.button("Refresh listings now (CoinGecko)")
+	recompute_listing_usd = st.button("Compute listing USD via CoinGecko")
 
 # Live log area
 log_area = st.empty()
@@ -133,7 +135,7 @@ if force_listing:
 	st.toast(f"Listings fetch finished with exit {proc.returncode}", icon="✅" if proc.returncode == 0 else "⚠️")
 
 # Load metrics (may still be empty for some rows)
-metrics_df = pd.read_csv(METRICS_CSV) if METRICS_CSV.exists() else pd.DataFrame(columns=["address","price_usd","ath_price_usd","ath_date","market_cap_usd","global_rank"]) 
+metrics_df = pd.read_csv(METRICS_CSV) if METRICS_CSV.exists() else pd.DataFrame(columns=["address","price_usd","ath_price_usd","ath_date","market_cap_usd","global_rank","cg_id"]) 
 metrics_df = metrics_df.drop(columns=[c for c in ["symbol","name"] if c in metrics_df.columns], errors="ignore")
 
 # Merge on address
@@ -153,7 +155,6 @@ elif BINANCE_LISTINGS_COPY_CSV.exists():
 
 if alpha_listing_path:
 	alpha_df = pd.read_csv(alpha_listing_path)
-	# Normalize columns for merge; keep address, listing_date_alpha, listing_price_quote, listing_quote, alpha_pair
 	alpha_df = alpha_df[[c for c in alpha_df.columns if c in {"address","listing_date_alpha","listing_price_quote","listing_quote","alpha_pair","listing_timestamp_ms"}]]
 	merged = merged.merge(alpha_df, on="address", how="left", suffixes=("", "_alpha"))
 
@@ -181,6 +182,59 @@ if "listing_price_quote" in merged.columns:
 	merged["ROI_alpha_x"] = (px / lq).where((lq > 0) & px.notna())
 	merged["ATH_ROI_alpha_x"] = (ath / lq).where((lq > 0) & ath.notna())
 
+# Listing price USD via CoinGecko using listing_date_alpha
+@st.cache_data(show_spinner=False)
+
+def fetch_price_at_ts(cg_id: str, ts_ms: int, api_key: str | None) -> float | None:
+	if not cg_id or not ts_ms:
+		return None
+	base = "https://api.coingecko.com/api/v3"
+	headers = {"Accept": "application/json"}
+	params = {"vs_currency": "usd", "from": int(ts_ms/1000) - 3600, "to": int(ts_ms/1000) + 3600}
+	if api_key:
+		base = "https://pro-api.coingecko.com/api/v3"
+		headers["x-cg-pro-api-key"] = api_key
+		params["x_cg_pro_api_key"] = api_key
+	try:
+		with httpx.Client(base_url=base, headers=headers, follow_redirects=True, timeout=30) as client:
+			r = client.get(f"/coins/{cg_id}/market_chart/range", params=params)
+			if r.status_code != 200:
+				return None
+			data = r.json()
+			prices = data.get("prices") or []
+			if not prices:
+				return None
+			# choose closest point
+			closest = min(prices, key=lambda p: abs(int(p[0]) - ts_ms))
+			return float(closest[1])
+	except Exception:
+		return None
+
+api_key = os.getenv("COINGECKO_API_KEY") or os.getenv("CG_API_KEY")
+if recompute_listing_usd:
+	st.info("Computing listing USD from CoinGecko based on listing_date_alpha...")
+	listing_usd: list[float | None] = []
+	for _, row in merged.iterrows():
+		cgid = str(row.get("cg_id") or "")
+		ts = row.get("listing_timestamp_ms") or row.get("listing_timestamp_ms_alpha")
+		if not ts and pd.notna(row.get("listing_date_alpha")):
+			try:
+				ts = int(pd.to_datetime(row.get("listing_date_alpha")).value // 1_000_000)
+			except Exception:
+				ts = None
+		price = None
+		if cgid and ts:
+			price = fetch_price_at_ts(cgid, int(ts), api_key)
+		listing_usd.append(price)
+	merged["listing_price_usd_cg"] = listing_usd
+	# Compute ROI using CG listing USD
+	lp = pd.to_numeric(merged["listing_price_usd_cg"], errors="coerce") if "listing_price_usd_cg" in merged.columns else pd.Series([])
+	px = pd.to_numeric(merged["price_usd"], errors="coerce")
+	ath = pd.to_numeric(merged["ath_price_usd"], errors="coerce")
+	if not lp.empty:
+		merged["ROI_cg_x"] = (px / lp).where((lp > 0) & px.notna())
+		merged["ATH_ROI_cg_x"] = (ath / lp).where((lp > 0) & ath.notna())
+
 # Create display rank: prefer CoinGecko global_rank; fallback to local rank by market cap (dense)
 try:
 	merged["market_cap_usd_num"] = pd.to_numeric(merged["market_cap_usd"], errors="coerce")
@@ -201,14 +255,13 @@ desired_cols = [
 	"market_cap_usd",
 	"ath_price_usd",
 	"ath_date",
-	"listing_date",
-	"listing_price_usd",
 	"listing_date_alpha",
+	"listing_price_usd_cg",
+	"ROI_cg_x",
+	"ATH_ROI_cg_x",
 	"listing_price_quote",
 	"listing_quote",
 	"alpha_pair",
-	"ROI_x",
-	"ATH_ROI_x",
 	"ROI_alpha_x",
 	"ATH_ROI_alpha_x",
 	"% from ATH",
