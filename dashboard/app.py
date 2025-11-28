@@ -521,6 +521,43 @@ with colb2:
 	bot_ath_roi = merged.dropna(subset=["ATH ROI %"]).nsmallest(10, "ATH ROI %")[['name','symbol','ATH ROI %']]
 	st.dataframe(bot_ath_roi, hide_index=True, use_container_width=True)
 
+st.subheader("Coins vs listing price")
+view_cols = [
+	"name",
+	"symbol",
+	"price_usd",
+	"listing_price_quote",
+	"ROI %",
+	"ATH ROI %",
+	"ath_price_usd",
+	"ath_date",
+	"listing_date",
+]
+view_cols = [c for c in view_cols if c in merged.columns]
+rename_map_view = {c: c.replace("_", " ") for c in view_cols}
+rename_map_view["ROI %"] = "ROI % (since Binance Alpha)"
+rename_map_view["ATH ROI %"] = "ATH ROI % (since Binance Alpha)"
+above_df = merged[roi > 0].copy() if roi.notna().any() else merged.iloc[0:0]
+below_df = merged[roi <= 0].copy() if roi.notna().any() else merged.iloc[0:0]
+tab_above, tab_below = st.tabs(["Above listing price", "At or below listing price"])
+with tab_above:
+	st.caption(f"{len(above_df)} tokens currently trade above their Binance Alpha listing price.")
+	if view_cols:
+		st.dataframe(
+			above_df.sort_values("ROI %", ascending=False, na_position="last")[view_cols].rename(columns=rename_map_view),
+			use_container_width=True,
+			hide_index=True,
+		)
+with tab_below:
+	st.caption(f"{len(below_df)} tokens are at or below their Binance Alpha listing price.")
+	if view_cols:
+		st.dataframe(
+			below_df.sort_values("ROI %", ascending=True, na_position="last")[view_cols].rename(columns=rename_map_view),
+			use_container_width=True,
+			hide_index=True,
+		)
+
+
 st.subheader("Tokens")
 if not available_cols:
 	st.warning("No displayable columns found.")
