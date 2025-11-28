@@ -33,12 +33,7 @@ if "COINGECKO_API_KEY" in st.secrets:
 if "BSCSCAN_API_KEY" in st.secrets:
 	os.environ["BSCSCAN_API_KEY"] = st.secrets["BSCSCAN_API_KEY"]
 
-left, right = st.columns([3, 2])
-
-with left:
-	st.markdown("Use the fetcher to refresh metrics from CoinGecko, or let the app auto-refresh if missing.")
-	st.code("python -m alpha_contracts.metrics --in ./data/alpha/alpha_tokens.csv --out ./data/alpha/metrics.csv", language="bash")
-	st.caption("Note: CoinGecko Pro uses header x-cg-pro-api-key and query param x_cg_pro_api_key. 400 Bad Request usually means the contract isn't indexed/unsupported.")
+# Removed instructional intro to keep presentation-ready layout
 
 # Prefer Binance Alpha listings as primary dataset if present
 primary_from_alpha = False
@@ -80,7 +75,8 @@ def need_refresh(metrics_path: Path, expected_rows: int) -> bool:
 	mtime = datetime.fromtimestamp(metrics_path.stat().st_mtime)
 	return (datetime.now() - mtime) > timedelta(days=1)
 
-# Controls
+# Controls (kept minimal)
+right = st.container()
 with right:
 	colA, colB = st.columns(2)
 	with colA:
@@ -381,7 +377,7 @@ from_ath_avg = (
 )
 if valid_to.any():
 	to_clip = to_ath_series[valid_to]
-	to_ath_avg = to_clip.clip(upper=to_ath_series[valid_to].quantile(0.99)).mean()
+	to_ath_avg = to_clip.clip(upper=to_clip.quantile(0.99)).mean()
 else:
 	to_ath_avg = float("nan")
 with colA:
@@ -392,6 +388,43 @@ with colC:
 	st.metric("Avg % from ATH", f"{from_ath_avg:.2f}%")
 with colD:
 	st.metric("Avg % to ATH", f"{to_ath_avg:.2f}%")
+
+# Highlights / KPIs
+st.subheader("Highlights")
+now = pd.Timestamp.utcnow()
+list_dates = pd.to_datetime(merged.get("listing_date"), errors="coerce", utc=True)
+days_since = (now - list_dates).dt.days
+roi = pd.to_numeric(merged.get("ROI %"), errors="coerce")
+ath_roi = pd.to_numeric(merged.get("ATH ROI %"), errors="coerce")
+near_ath = (to_ath_series <= 25).sum() if "% to ATH" in merged else 0
+
+col1, col2, col3, col4 = st.columns(4)
+with col1:
+	st.metric("Median ROI % (since Alpha)", f"{roi.median():.2f}%" if roi.notna().any() else "–")
+with col2:
+	st.metric("Median ATH ROI % (since Alpha)", f"{ath_roi.median():.2f}%" if ath_roi.notna().any() else "–")
+with col3:
+	st.metric("Tokens within 25% of ATH", int(near_ath))
+with col4:
+	st.metric("Median days since listing", int(days_since.median()) if days_since.notna().any() else "–")
+
+# Top movers
+mc = pd.to_numeric(merged.get("market_cap_usd"), errors="coerce")
+merged["_mc_num"] = mc
+
+colt1, colt2, colt3 = st.columns(3)
+with colt1:
+	st.caption("Top market cap")
+	top_mc = merged.dropna(subset=["_mc_num"]).nlargest(10, "_mc_num")[['name','symbol','_mc_num']]
+	st.dataframe(top_mc.rename(columns={'_mc_num':'market cap usd'}), hide_index=True, use_container_width=True)
+with colt2:
+	st.caption("Top ROI since Alpha")
+	top_roi = merged.dropna(subset=["ROI %"]).nlargest(10, "ROI %")[['name','symbol','ROI %']]
+	st.dataframe(top_roi, hide_index=True, use_container_width=True)
+with colt3:
+	st.caption("Top ATH ROI since Alpha")
+	top_ath_roi = merged.dropna(subset=["ATH ROI %"]).nlargest(10, "ATH ROI %")[['name','symbol','ATH ROI %']]
+	st.dataframe(top_ath_roi, hide_index=True, use_container_width=True)
 
 st.subheader("Tokens")
 if not available_cols:
