@@ -179,6 +179,15 @@ else:
 # Drop columns no longer desired
 merged = merged.drop(columns=[c for c in ["alpha_pair","listing_quote"] if c in merged.columns], errors="ignore")
 
+# Focus view for BSC-only highlights
+focus_df = merged.copy()
+if "chain" in focus_df.columns:
+	bsc_mask = focus_df["chain"].astype(str).str.upper() == "BSC"
+	if bsc_mask.any():
+		focus_df = focus_df[bsc_mask]
+if focus_df.empty:
+	focus_df = merged.copy()
+
 # Derived columns
 for col in ["price_usd", "ath_price_usd", "market_cap_usd", "global_rank"]:
 	if col not in merged.columns:
@@ -371,28 +380,28 @@ available_cols = [c for c in desired_cols if c in merged.columns]
 
 st.subheader("Summary")
 colA, colB, colC, colD = st.columns(4)
-from_ath_series = pd.to_numeric(merged["% from ATH"], errors="coerce")
-to_ath_series = pd.to_numeric(merged["% to ATH"], errors="coerce")
-price_series = pd.to_numeric(merged["price_usd"], errors="coerce")
-valid_from = from_ath_series.notna()
-valid_to = to_ath_series.notna() & price_series.gt(0) & to_ath_series.ge(0)
+focus_from_ath = pd.to_numeric(focus_df["% from ATH"], errors="coerce")
+focus_to_ath = pd.to_numeric(focus_df["% to ATH"], errors="coerce")
+focus_prices = pd.to_numeric(focus_df["price_usd"], errors="coerce")
+focus_valid_from = focus_from_ath.notna()
+focus_valid_to = focus_to_ath.notna() & focus_prices.gt(0) & focus_to_ath.ge(0)
 from_ath_avg = (
-	from_ath_series[valid_from].clip(
-		lower=from_ath_series[valid_from].quantile(0.01),
-		upper=from_ath_series[valid_from].quantile(0.99),
+	focus_from_ath[focus_valid_from].clip(
+		lower=focus_from_ath[focus_valid_from].quantile(0.01),
+		upper=focus_from_ath[focus_valid_from].quantile(0.99),
 	).mean()
-	if valid_from.any()
+	if focus_valid_from.any()
 	else float("nan")
 )
-if valid_to.any():
-	to_clip = to_ath_series[valid_to]
+if focus_valid_to.any():
+	to_clip = focus_to_ath[focus_valid_to]
 	to_ath_avg = to_clip.clip(upper=to_clip.quantile(0.99)).mean()
 else:
 	to_ath_avg = float("nan")
 with colA:
-	st.metric("Tokens", len(merged))
+	st.metric("Tokens", len(focus_df))
 with colB:
-	st.metric("With metrics", int(merged["price_usd"].notna().sum()))
+	st.metric("With metrics", int(focus_df["price_usd"].notna().sum()))
 with colC:
 	st.metric("Avg % from ATH", f"{from_ath_avg:.2f}%")
 with colD:
@@ -467,14 +476,36 @@ if cross_chain_df is not None and not cross_chain_df.empty:
 	except Exception as cross_err:
 		st.warning(f"Unable to build cross-chain comparison: {cross_err}")
 
+if not focus_df.empty and "listing_date" in focus_df.columns:
+	bsc_dates = pd.to_datetime(focus_df["listing_date"], errors="coerce", utc=True)
+	valid_dates = bsc_dates.dropna()
+	if not valid_dates.empty:
+		st.subheader("BSC listings per month (Binance Alpha)")
+		monthly_counts = (
+			valid_dates.dt.to_period("M")
+			.value_counts()
+			.sort_index()
+			.rename("tokens")
+			.to_frame()
+		)
+		monthly_counts.index = monthly_counts.index.astype(str)
+		st.bar_chart(monthly_counts, height=250)
+		st.dataframe(
+			monthly_counts.reset_index().rename(columns={"index": "month"}),
+			hide_index=True,
+			use_container_width=True,
+		)
+	else:
+		st.info("No Binance Alpha listing dates available to build the BSC monthly breakdown.")
+
 # Highlights / KPIs
 st.subheader("Highlights")
 now = pd.Timestamp.utcnow()
-list_dates = pd.to_datetime(merged.get("listing_date"), errors="coerce", utc=True)
-days_since = (now - list_dates).dt.days
-roi = pd.to_numeric(merged.get("ROI %"), errors="coerce")
-ath_roi = pd.to_numeric(merged.get("ATH ROI %"), errors="coerce")
-near_ath = (to_ath_series <= 25).sum() if "% to ATH" in merged else 0
+focus_list_dates = pd.to_datetime(focus_df.get("listing_date"), errors="coerce", utc=True)
+days_since = (now - focus_list_dates).dt.days
+roi_focus = pd.to_numeric(focus_df.get("ROI %"), errors="coerce")
+ath_roi_focus = pd.to_numeric(focus_df.get("ATH ROI %"), errors="coerce")
+near_ath = (focus_to_ath <= 25).sum() if "% to ATH" in focus_df else 0
 
 # Robust averages (trim 1% tails to reduce outlier impact)
 
@@ -519,28 +550,28 @@ def cg_global_market_cap_usd() -> float | None:
 
 k1, k2, k3, k4 = st.columns(4)
 with k1:
-	st.metric("Median ROI % (since Binance Alpha)", f"{roi.median():.2f}%" if roi.notna().any() else "–")
+	st.metric("Median ROI % (since Binance Alpha)", f"{roi_focus.median():.2f}%" if roi_focus.notna().any() else "–")
 with k2:
-	st.metric("Average ROI % (trimmed)", f"{trimmed_mean(roi):.2f}%" if roi.notna().any() else "–")
+	st.metric("Average ROI % (trimmed)", f"{trimmed_mean(roi_focus):.2f}%" if roi_focus.notna().any() else "–")
 with k3:
-	st.metric("Median ATH ROI % (since Binance Alpha)", f"{ath_roi.median():.2f}%" if ath_roi.notna().any() else "–")
+	st.metric("Median ATH ROI % (since Binance Alpha)", f"{ath_roi_focus.median():.2f}%" if ath_roi_focus.notna().any() else "–")
 with k4:
-	st.metric("Average ATH ROI % (trimmed)", f"{trimmed_mean(ath_roi):.2f}%" if ath_roi.notna().any() else "–")
+	st.metric("Average ATH ROI % (trimmed)", f"{trimmed_mean(ath_roi_focus):.2f}%" if ath_roi_focus.notna().any() else "–")
 
 m1, m2, m3, m4 = st.columns(4)
 with m1:
-	pos = (roi > 0).sum() if roi.notna().any() else 0
-	total = roi.notna().sum()
+	pos = (roi_focus > 0).sum() if roi_focus.notna().any() else 0
+	total = roi_focus.notna().sum()
 	st.metric("Share with positive ROI", f"{(100*pos/max(total,1)):.1f}%")
 with m2:
 	st.metric("Tokens within 25% of ATH", int(near_ath))
 with m3:
 	st.metric("Median days since listing", int(days_since.median()) if days_since.notna().any() else "–")
 with m4:
-	st.metric("90th pct ROI %", f"{roi.quantile(0.90):.2f}%" if roi.notna().any() else "–")
+	st.metric("90th pct ROI %", f"{roi_focus.quantile(0.90):.2f}%" if roi_focus.notna().any() else "–")
 
 # Total market cap for BSC Alpha and share of crypto market
-mc = pd.to_numeric(merged.get("market_cap_usd"), errors="coerce")
+mc = pd.to_numeric(focus_df.get("market_cap_usd"), errors="coerce")
 alpha_total_mc = float(mc.dropna().sum()) if mc.notna().any() else None
 global_mc = cg_global_market_cap_usd()
 share = (alpha_total_mc / global_mc * 100.0) if (alpha_total_mc and global_mc and global_mc > 0) else None
@@ -551,8 +582,9 @@ with s1:
 with s2:
 	st.metric("Share of total crypto market", f"{share:.2f}%" if share is not None else "–")
 # Counts above/below listing price
-pos_count = int((roi > 0).sum()) if roi.notna().any() else 0
-neg_count = int((roi <= 0).sum()) if roi.notna().any() else 0
+roi_all = pd.to_numeric(merged.get("ROI %"), errors="coerce")
+pos_count = int((roi_focus > 0).sum()) if roi_focus.notna().any() else 0
+neg_count = int((roi_focus <= 0).sum()) if roi_focus.notna().any() else 0
 with s3:
 	st.metric("Coins above listing price", f"{pos_count}")
 with s4:
