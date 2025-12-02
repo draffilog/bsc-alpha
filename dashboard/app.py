@@ -22,6 +22,7 @@ METRICS_CSV = Path("./data/alpha/metrics.csv")
 LISTINGS_CSV = Path("./data/alpha/listings.csv")
 BINANCE_LISTINGS_CSV = Path("./data/alpha/binance_listings.csv")
 BINANCE_LISTINGS_COPY_CSV = Path("./data/alpha/binance_listings copy.csv")
+CROSS_CHAIN_LISTINGS_CSV = Path("./data/alpha/cross_chain_listings.csv")
 LOG_PATH = Path("./data/alpha/metrics_log.txt")
 
 st.set_page_config(page_title="BSC Alpha Tokens Dashboard", layout="wide")
@@ -60,6 +61,13 @@ if primary_from_alpha:
 		tokens_df["listing_date"] = tokens_df["listing_date_alpha"]
 else:
 	tokens_df = raw_df.copy()
+
+cross_chain_df = None
+if CROSS_CHAIN_LISTINGS_CSV.exists():
+	try:
+		cross_chain_df = pd.read_csv(CROSS_CHAIN_LISTINGS_CSV)
+	except Exception:
+		cross_chain_df = None
 
 # Helper: ensure metrics exist and are recent enough
 
@@ -389,6 +397,75 @@ with colC:
 	st.metric("Avg % from ATH", f"{from_ath_avg:.2f}%")
 with colD:
 	st.metric("Avg % to ATH", f"{to_ath_avg:.2f}%")
+
+if cross_chain_df is not None and not cross_chain_df.empty:
+	st.subheader("Cross-chain Alpha listings (H2 2025)")
+	try:
+		cc = cross_chain_df.copy()
+		cc["listing_date_alpha"] = pd.to_datetime(cc["listing_date_alpha"], errors="coerce", utc=True)
+		cc["listing_price_usdt"] = pd.to_numeric(cc["listing_price_usdt"], errors="coerce")
+		start_h2 = pd.Timestamp(year=2025, month=7, day=1, tz="UTC")
+		cc_h2 = cc[cc["listing_date_alpha"] >= start_h2].copy()
+		if cc_h2.empty:
+			st.info("No cross-chain Binance Alpha listings recorded for the second half of 2025 yet.")
+		else:
+			summary = (
+				cc_h2.groupby("chain")
+				.agg(
+					tokens=("address", "nunique"),
+					avg_listing_price_usdt=("listing_price_usdt", "mean"),
+					first_listing=("listing_date_alpha", "min"),
+					last_listing=("listing_date_alpha", "max"),
+				)
+				.reset_index()
+			)
+			chain_order = ["BSC", "Ethereum", "Solana", "Base"]
+			summary = summary.set_index("chain").reindex(chain_order).reset_index()
+			summary["tokens"] = summary["tokens"].fillna(0).astype(int)
+			summary["avg_listing_price_usdt"] = summary["avg_listing_price_usdt"].round(4)
+			summary["first_listing"] = summary["first_listing"].dt.date
+			summary["last_listing"] = summary["last_listing"].dt.date
+			total_tokens_h2 = summary["tokens"].sum()
+			if total_tokens_h2 > 0:
+				summary["share_of_total_%"] = (summary["tokens"] / total_tokens_h2 * 100.0).round(1)
+			else:
+				summary["share_of_total_%"] = 0.0
+			bsc_tokens_h2 = summary.loc[summary["chain"] == "BSC", "tokens"]
+			if not bsc_tokens_h2.empty and bsc_tokens_h2.iloc[0] > 0:
+				summary["vs_BSC_tokens"] = (summary["tokens"] / bsc_tokens_h2.iloc[0]).round(2)
+			else:
+				summary["vs_BSC_tokens"] = pd.NA
+
+			kc1, kc2, kc3 = st.columns(3)
+			with kc1:
+				st.metric("Total listings (H2 2025)", int(total_tokens_h2))
+			with kc2:
+				st.metric("Chains with listings", int((summary["tokens"] > 0).sum()))
+			with kc3:
+				top_chain = summary.loc[summary["tokens"].idxmax(), "chain"] if total_tokens_h2 > 0 else "–"
+				st.metric("Largest chain by listings", top_chain)
+
+			st.bar_chart(summary.set_index("chain")["tokens"], height=240)
+			st.dataframe(
+				summary.rename(
+					columns={
+						"tokens": "Tokens",
+						"avg_listing_price_usdt": "Avg listing price (USDT)",
+						"first_listing": "First listing date",
+						"last_listing": "Last listing date",
+						"share_of_total_%": "Share of H2 total (%)",
+						"vs_BSC_tokens": "× vs BSC (tokens)",
+					}
+				),
+				hide_index=True,
+				use_container_width=True,
+			)
+			st.caption(
+				"Counts and averages consider only listings dated July 1, 2025 or later. "
+				"Values marked 0 indicate no captured USDT pair listings for that chain in H2 2025 yet."
+			)
+	except Exception as cross_err:
+		st.warning(f"Unable to build cross-chain comparison: {cross_err}")
 
 # Highlights / KPIs
 st.subheader("Highlights")
