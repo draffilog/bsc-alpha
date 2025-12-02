@@ -188,6 +188,10 @@ if "chain" in focus_df.columns:
 if focus_df.empty:
 	focus_df = merged.copy()
 
+for col in ["% from ATH", "% to ATH", "ROI %", "ATH ROI %", "price_usd", "market_cap_usd", "listing_date"]:
+	if col not in focus_df.columns:
+		focus_df[col] = pd.NA
+
 # Derived columns
 for col in ["price_usd", "ath_price_usd", "market_cap_usd", "global_rank"]:
 	if col not in merged.columns:
