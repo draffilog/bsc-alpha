@@ -1,7 +1,4 @@
 address,symbol,name,listing_timestamp_ms,listing_date_alpha,listing_price_quote,listing_quote,alpha_pair
-plays3gssadh2q2jls7djp7yzet75nk78xgre5ylrfq,PLAYSOLANA,Play Solana,1763298000000,2025-11-16T13:00:00+00:00,0.00924212,USDT,
-metvsvvrapdj9cflzq4tr43xk4tajqfwx76z3n6mwql,MET,Meteora,1761224400000,2025-10-23T13:00:00+00:00,0.91579195,USDT,
-7s9most7vv1j3jvnnw2ayocsqdbdckpyz5apqdpky9i5,PIPE,Pipe Network,1759932000000,2025-10-08T14:00:00+00:00,0.34207343,USDT,
 j6pqq3facjqewppgppwrb4nm8ju3wlyybrrlh7femfvd,2Z,DoubleZero,1759406400000,2025-10-02T12:00:00+00:00,0.63377164,USDT,
 sarosy6vscao718m4a778z4cgtvcwcgef5m9meh1lgl,SAROS,Saros,1757239200000,2025-09-07T10:00:00+00:00,0.36560013,USDT,
 sw1tchlmrgtfw5xzknqqdpdarb8pd95sjywpnp9tbfx,SWTCH,Switchboard,1757415600000,2025-09-09T11:00:00+00:00,0.13604247,USDT,
