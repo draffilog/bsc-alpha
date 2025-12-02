@@ -96,3 +96,5 @@ if __name__ == "__main__":
 	args = parser.parse_args()
 
 	raise SystemExit(asyncio.run(run(Path(args.metrics), Path(args.out), args.rps, args.api_key)))
+
+
