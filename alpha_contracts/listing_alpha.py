@@ -11,6 +11,8 @@ console = Console()
 
 TOKEN_LIST_URL = "https://www.binance.com/bapi/defi/v1/public/wallet-direct/buw/wallet/cex/alpha/all/token/list"
 PAIR_KLINES_URL = "https://www.binance.com/bapi/defi/v1/public/alpha-trade/klines"
+PAIR_INTERVAL = "1m"
+PAIR_QUOTE = "USDT"
 PAGE_TIMEOUT = 30
 CONCURRENCY = 8
 
@@ -24,14 +26,14 @@ def to_iso(ts_ms: Number) -> str:
 		return ""
 
 
-async def fetch_alpha_index(client: httpx.AsyncClient, chain_ids: set[str]) -> Dict[str, Dict]:
+async def fetch_alpha_index(client: httpx.AsyncClient) -> Dict[str, Dict]:
 	resp = await client.get(TOKEN_LIST_URL, timeout=PAGE_TIMEOUT)
 	resp.raise_for_status()
 	data = resp.json().get("data") or []
 	return {
 		(item.get("contractAddress") or "").lower(): item
 		for item in data
-		if str(item.get("chainId")).lower() in chain_ids
+		if str(item.get("chainId")).lower() in {"56", "bsc"}
 	}
 
 
@@ -39,8 +41,6 @@ async def fetch_listing_for_address(
 	address: str,
 	client: httpx.AsyncClient,
 	alpha_index: Dict[str, Dict],
-	pair_quote: str,
-	pair_interval: str,
 ) -> Optional[Tuple[int, float]]:
 	info = alpha_index.get(address.lower())
 	if not info:
@@ -50,10 +50,10 @@ async def fetch_listing_for_address(
 		return None
 	if not alpha_id.startswith("ALPHA_"):
 		alpha_id = f"ALPHA_{alpha_id}"
-	symbol = f"{alpha_id}{pair_quote}"
+	symbol = f"{alpha_id}{PAIR_QUOTE}"
 	params = {
 		"symbol": symbol,
-		"interval": pair_interval,
+		"interval": PAIR_INTERVAL,
 		"limit": 1,
 		"startTime": 0,
 		"endTime": int(datetime.utcnow().timestamp() * 1000),
@@ -76,14 +76,7 @@ async def fetch_listing_for_address(
 	return ts_ms, open_price
 
 
-async def run(
-	in_tokens_csv: Path,
-	out_csv: Path,
-	limit: int = 0,
-	chain_ids: Optional[List[str]] = None,
-	pair_quote: str = "USDT",
-	pair_interval: str = "1m",
-) -> int:
+async def run(in_tokens_csv: Path, out_csv: Path, limit: int = 0) -> int:
 	if not in_tokens_csv.exists():
 		console.print(f"[red]Missing input tokens CSV {in_tokens_csv}[/]")
 		return 2
@@ -104,9 +97,8 @@ async def run(
 	results: List[Optional[Dict[str, str]]] = [None] * len(entries)
 	sema = asyncio.Semaphore(CONCURRENCY)
 
-	target_chain_ids = {str(cid).lower() for cid in (chain_ids or ["56"])}
 	async with httpx.AsyncClient(timeout=PAGE_TIMEOUT) as client:
-		alpha_index = await fetch_alpha_index(client, target_chain_ids)
+		alpha_index = await fetch_alpha_index(client)
 		console.print(f"Loaded {len(alpha_index)} Alpha tokens from index")
 
 		async def process(idx: int, item: Dict[str, str]) -> None:
@@ -114,7 +106,7 @@ async def run(
 			console.print(f"[{idx + 1}/{len(entries)}] {addr}")
 			async with sema:
 				try:
-					result = await fetch_listing_for_address(addr, client, alpha_index, pair_quote, pair_interval)
+					result = await fetch_listing_for_address(addr, client, alpha_index)
 				except Exception as e:
 					console.print(f"warn {addr}: {e}")
 					result = None
@@ -127,7 +119,7 @@ async def run(
 					"listing_timestamp_ms": str(ts),
 					"listing_date_alpha": to_iso(ts),
 					"listing_price_quote": f"{price:.10g}",
-					"listing_quote": pair_quote,
+					"listing_quote": PAIR_QUOTE,
 					"alpha_pair": "",
 				}
 			else:
@@ -138,7 +130,7 @@ async def run(
 					"listing_timestamp_ms": "",
 					"listing_date_alpha": "",
 					"listing_price_quote": "",
-					"listing_quote": pair_quote,
+					"listing_quote": PAIR_QUOTE,
 					"alpha_pair": "",
 				}
 
@@ -173,20 +165,6 @@ if __name__ == "__main__":
 	parser.add_argument("--in", dest="in_csv", default="./data/alpha/alpha_tokens.csv")
 	parser.add_argument("--out", dest="out_csv", default="./data/alpha/binance_listings.csv")
 	parser.add_argument("--limit", type=int, default=0)
-	parser.add_argument("--chain-id", dest="chain_ids", action="append", default=None, help="Chain ID(s) to include (e.g. 56, CT_501). Repeat flag for multiples.")
-	parser.add_argument("--pair-quote", dest="pair_quote", default="USDT", help="Quote asset symbol (default: USDT)")
-	parser.add_argument("--interval", dest="pair_interval", default="1m", help="Klines interval (default: 1m)")
 	args = parser.parse_args()
 
-	raise SystemExit(
-		asyncio.run(
-			run(
-				Path(args.in_csv),
-				Path(args.out_csv),
-				args.limit,
-				chain_ids=args.chain_ids,
-				pair_quote=args.pair_quote,
-				pair_interval=args.pair_interval,
-			)
-		)
-	)
+	raise SystemExit(asyncio.run(run(Path(args.in_csv), Path(args.out_csv), args.limit)))
