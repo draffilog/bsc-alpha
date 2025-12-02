@@ -179,19 +179,6 @@ else:
 # Drop columns no longer desired
 merged = merged.drop(columns=[c for c in ["alpha_pair","listing_quote"] if c in merged.columns], errors="ignore")
 
-# Focus view for BSC-only highlights
-focus_df = merged.copy()
-if "chain" in focus_df.columns:
-	bsc_mask = focus_df["chain"].astype(str).str.upper() == "BSC"
-	if bsc_mask.any():
-		focus_df = focus_df[bsc_mask]
-if focus_df.empty:
-	focus_df = merged.copy()
-
-for col in ["% from ATH", "% to ATH", "ROI %", "ATH ROI %", "price_usd", "market_cap_usd", "listing_date"]:
-	if col not in focus_df.columns:
-		focus_df[col] = pd.NA
-
 # Derived columns
 for col in ["price_usd", "ath_price_usd", "market_cap_usd", "global_rank"]:
 	if col not in merged.columns:
@@ -357,6 +344,23 @@ if "listing_price_quote" in merged.columns:
 	merged["ROI %"] = pd.to_numeric(merged["ROI %"], errors="coerce").round(2)
 	merged["ATH ROI %"] = ((merged["ath_price_usd"].astype(float) / lq) - 1.0).where((lq > 0) & merged["ath_price_usd"].notna()) * 100.0
 	merged["ATH ROI %"] = pd.to_numeric(merged["ATH ROI %"], errors="coerce").round(2)
+
+# Focus view for BSC-only highlights (defaulting to entire dataset if chain info missing)
+focus_df = merged.copy()
+if "chain" in focus_df.columns:
+	bsc_mask = focus_df["chain"].astype(str).str.upper() == "BSC"
+	if bsc_mask.any():
+		focus_df = focus_df[bsc_mask]
+if focus_df.empty:
+	focus_df = merged.copy()
+
+for col in ["% from ATH", "% to ATH", "ROI %", "ATH ROI %", "price_usd", "market_cap_usd", "listing_date"]:
+	if col not in focus_df.columns:
+		focus_df[col] = pd.NA
+
+roi_all = pd.to_numeric(merged.get("ROI %"), errors="coerce")
+ath_roi_all = pd.to_numeric(merged.get("ATH ROI %"), errors="coerce")
+listing_dates_all = pd.to_datetime(merged.get("listing_date"), errors="coerce", utc=True)
 
 # Rank: keep only CoinGecko global rank (no local fallback)
 merged["rank"] = pd.to_numeric(merged.get("global_rank"), errors="coerce").astype("Int64")
@@ -651,8 +655,8 @@ view_cols = [c for c in view_cols if c in merged.columns]
 rename_map_view = {c: c.replace("_", " ") for c in view_cols}
 rename_map_view["ROI %"] = "ROI % (since Binance Alpha)"
 rename_map_view["ATH ROI %"] = "ATH ROI % (since Binance Alpha)"
-above_df = merged[roi > 0].copy() if roi.notna().any() else merged.iloc[0:0]
-below_df = merged[roi <= 0].copy() if roi.notna().any() else merged.iloc[0:0]
+above_df = merged[roi_all > 0].copy() if roi_all.notna().any() else merged.iloc[0:0]
+below_df = merged[roi_all <= 0].copy() if roi_all.notna().any() else merged.iloc[0:0]
 tab_above, tab_below = st.tabs(["Above listing price", "At or below listing price"])
 with tab_above:
 	st.caption(f"{len(above_df)} tokens currently trade above their Binance Alpha listing price.")
