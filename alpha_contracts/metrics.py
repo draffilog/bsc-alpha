@@ -14,8 +14,31 @@ DEMO_BASE = "https://api.coingecko.com/api/v3"
 PRO_BASE = "https://pro-api.coingecko.com/api/v3"
 
 
-async def fetch_token_core(client: httpx.AsyncClient, rate: AsyncLimiter, address: str, params: Dict, log) -> Tuple[Optional[Dict], Optional[int]]:
-    url = f"/coins/binance-smart-chain/contract/{address}"
+def normalize_address(addr: str, platform: str) -> Optional[str]:
+    if not addr:
+        return None
+    value = addr.strip()
+    if not value:
+        return None
+    platform_slug = (platform or "").lower()
+    if platform_slug in {"binance-smart-chain", "bsc"}:
+        value = value.lower()
+        if value.startswith("0x") and len(value) == 42:
+            return value
+        return None
+    return value
+
+
+async def fetch_token_core(
+    client: httpx.AsyncClient,
+    rate: AsyncLimiter,
+    address: str,
+    params: Dict,
+    log,
+    platform: str,
+) -> Tuple[Optional[Dict], Optional[int]]:
+    platform_slug = (platform or "").strip().lower() or "binance-smart-chain"
+    url = f"/coins/{platform_slug}/contract/{address}"
     async with rate:
         r = await client.get(url, params=params, timeout=60)
     return (r.json() if r.status_code == 200 else None, r.status_code)
@@ -52,10 +75,19 @@ async def fetch_coin_rank_core(client: httpx.AsyncClient, rate: AsyncLimiter, cg
         return None
 
 
-async def fetch_onchain_fallback(client: httpx.AsyncClient, rate: AsyncLimiter, address: str, params: Dict, log) -> Optional[Dict]:
+async def fetch_onchain_fallback(
+    client: httpx.AsyncClient,
+    rate: AsyncLimiter,
+    address: str,
+    params: Dict,
+    log,
+    onchain_network: Optional[str],
+) -> Optional[Dict]:
+    network = (onchain_network or "").strip().lower()
+    if not network or network == "none":
+        return None
     # Best-effort fallback using Onchain Token Info endpoint
-    # GET /onchain/networks/bsc/tokens/{address}
-    url = f"/onchain/networks/bsc/tokens/{address}"
+    url = f"/onchain/networks/{network}/tokens/{address}"
     try:
         async with rate:
             r = await client.get(url, params=params, timeout=60)
@@ -68,20 +100,28 @@ async def fetch_onchain_fallback(client: httpx.AsyncClient, rate: AsyncLimiter, 
         return None
 
 
-async def fetch_token(client: httpx.AsyncClient, rate: AsyncLimiter, address: str, params: Dict, log) -> Optional[Dict]:
+async def fetch_token(
+    client: httpx.AsyncClient,
+    rate: AsyncLimiter,
+    address: str,
+    params: Dict,
+    log,
+    platform: str,
+    onchain_network: Optional[str],
+) -> Optional[Dict]:
     for attempt in range(5):
         try:
-            data, code = await fetch_token_core(client, rate, address, params, log)
+            data, code = await fetch_token_core(client, rate, address, params, log, platform)
             if code == 200:
                 log(f"OK {address}")
                 return data
             if code == 404:
                 log(f"404 Not Found {address}")
                 # try onchain fallback
-                return await fetch_onchain_fallback(client, rate, address, params, log)
+                return await fetch_onchain_fallback(client, rate, address, params, log, onchain_network)
             if code == 400:
                 log(f"400 Bad Request {address}")
-                return await fetch_onchain_fallback(client, rate, address, params, log)
+                return await fetch_onchain_fallback(client, rate, address, params, log, onchain_network)
             if code == 429:
                 wait = 1.5 * (attempt + 1) + random.random()
                 log(f"429 Too Many Requests {address}, retry in {wait:.1f}s")
@@ -98,7 +138,14 @@ async def fetch_token(client: httpx.AsyncClient, rate: AsyncLimiter, address: st
             return None
 
 
-async def run(in_tokens_csv: Path, out_metrics_csv: Path, concurrency_rps: int = 5, api_key: Optional[str] = None) -> int:
+async def run(
+    in_tokens_csv: Path,
+    out_metrics_csv: Path,
+    concurrency_rps: int = 5,
+    api_key: Optional[str] = None,
+    platform: str = "binance-smart-chain",
+    onchain_network: Optional[str] = "bsc",
+) -> int:
     # Prepare logging
     log_path = out_metrics_csv.parent / "metrics_log.txt"
     log_path.parent.mkdir(parents=True, exist_ok=True)
@@ -118,11 +165,11 @@ async def run(in_tokens_csv: Path, out_metrics_csv: Path, concurrency_rps: int =
     with in_tokens_csv.open(newline="") as f:
         reader = csv.DictReader(f)
         for row in reader:
-            addr = (row.get("address") or "").lower()
-            if addr.startswith("0x") and len(addr) == 42:
+            addr = normalize_address(row.get("address") or "", platform)
+            if addr:
                 addresses.append(addr)
     if not addresses:
-        console.print("[red]No addresses found in input CSV[/]")
+        console.print(f"[red]No addresses found in input CSV for platform {platform}[/]")
         return 1
 
     # Configure client
@@ -148,7 +195,7 @@ async def run(in_tokens_csv: Path, out_metrics_csv: Path, concurrency_rps: int =
         results: List[Dict] = []
         for idx, addr in enumerate(addresses, 1):
             log(f"[{idx}/{len(addresses)}] GET {addr}")
-            data = await fetch_token(client, rate, addr, params_base, log)
+            data = await fetch_token(client, rate, addr, params_base, log, platform, onchain_network)
             if not data:
                 continue
             # Normalize from either coins or onchain format
@@ -214,11 +261,22 @@ async def run(in_tokens_csv: Path, out_metrics_csv: Path, concurrency_rps: int =
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(description="Fetch current and ATH metrics for BSC contracts via CoinGecko")
-    parser.add_argument("--in", dest="in_csv", default="./data/alpha/alpha_tokens.csv")
-    parser.add_argument("--out", dest="out_csv", default="./data/alpha/metrics.csv")
-    parser.add_argument("--rps", dest="rps", type=int, default=5)
-    parser.add_argument("--api-key", dest="api_key", type=str, default=None, help="CoinGecko Pro API key or set COINGECKO_API_KEY")
+    parser = argparse.ArgumentParser(description="Fetch current price/ATH metrics for Binance Alpha listings via CoinGecko")
+    parser.add_argument("--in", dest="in_csv", default="./data/alpha/alpha_tokens.csv", help="Input tokens CSV (address,symbol,name)")
+    parser.add_argument("--out", dest="out_csv", default="./data/alpha/metrics.csv", help="Output metrics CSV path")
+    parser.add_argument("--rps", dest="rps", type=int, default=5, help="Requests per second limit")
+    parser.add_argument("--api-key", dest="api_key", type=str, default=None, help="CoinGecko Pro API key or set COINGECKO_API_KEY / CG_API_KEY env vars")
+    parser.add_argument("--platform", dest="platform", default="binance-smart-chain", help="CoinGecko platform slug (e.g. binance-smart-chain, solana)")
+    parser.add_argument("--onchain-network", dest="onchain_network", default="bsc", help="Optional CoinGecko onchain network for fallback (e.g. bsc, none)")
     args = parser.parse_args()
 
-    raise SystemExit(asyncio.run(run(Path(args.in_csv), Path(args.out_csv), args.rps, args.api_key)))
+    raise SystemExit(asyncio.run(
+        run(
+            Path(args.in_csv),
+            Path(args.out_csv),
+            args.rps,
+            api_key=args.api_key,
+            platform=args.platform,
+            onchain_network=args.onchain_network,
+        )
+    ))

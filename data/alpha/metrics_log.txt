@@ -1,9 +1,10 @@
-[1/211] GET 0x004d50b3fc784b580531d8e8615aa96cf7fbb919
-429 Too Many Requests 0x004d50b3fc784b580531d8e8615aa96cf7fbb919, retry in 1.9s
-429 Too Many Requests 0x004d50b3fc784b580531d8e8615aa96cf7fbb919, retry in 3.2s
-429 Too Many Requests 0x004d50b3fc784b580531d8e8615aa96cf7fbb919, retry in 5.2s
-429 Too Many Requests 0x004d50b3fc784b580531d8e8615aa96cf7fbb919, retry in 6.4s
-429 Too Many Requests 0x004d50b3fc784b580531d8e8615aa96cf7fbb919, retry in 8.2s
-[2/211] GET 0x01bf3d77cd08b19bf3f2309972123a2cca0f6936
-429 Too Many Requests 0x01bf3d77cd08b19bf3f2309972123a2cca0f6936, retry in 2.0s
-429 Too Many Requests 0x01bf3d77cd08b19bf3f2309972123a2cca0f6936, retry in 3.3s
+[1/58] GET plays3gssadh2q2jls7djp7yzet75nk78xgre5ylrfq
+429 Too Many Requests plays3gssadh2q2jls7djp7yzet75nk78xgre5ylrfq, retry in 2.4s
+429 Too Many Requests sw1tchlmrgtfw5xzknqqdpdarb8pd95sjywpnp9tbfx, retry in 6.6s
+429 Too Many Requests plays3gssadh2q2jls7djp7yzet75nk78xgre5ylrfq, retry in 3.8s
+429 Too Many Requests sw1tchlmrgtfw5xzknqqdpdarb8pd95sjywpnp9tbfx, retry in 8.5s
+[7/58] GET drz26ckjdksvrwib3dvvsjo9eexccc7hkhdjviiyeezy
+429 Too Many Requests drz26ckjdksvrwib3dvvsjo9eexccc7hkhdjviiyeezy, retry in 1.9s
+429 Too Many Requests drz26ckjdksvrwib3dvvsjo9eexccc7hkhdjviiyeezy, retry in 3.1s
+429 Too Many Requests drz26ckjdksvrwib3dvvsjo9eexccc7hkhdjviiyeezy, retry in 5.0s
+429 Too Many Requests drz26ckjdksvrwib3dvvsjo9eexccc7hkhdjviiyeezy, retry in 6.1s
