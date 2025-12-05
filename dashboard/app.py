@@ -3,7 +3,11 @@ from pathlib import Path
 
 import streamlit as st
 
-from dashboard.alpha_dashboard import DashboardConfig, render_dashboard
+CURRENT_DIR = Path(__file__).resolve().parent
+if str(CURRENT_DIR) not in sys.path:
+	sys.path.insert(0, str(CURRENT_DIR))
+
+from alpha_dashboard import DashboardConfig, render_dashboard
 
 # Ensure project root is on sys.path so we can import alpha_contracts modules
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
